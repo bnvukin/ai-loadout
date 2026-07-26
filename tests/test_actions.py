@@ -144,6 +144,41 @@ def test_run_action_failure_marks_failed(winget_env, monkeypatch):
     assert comp.state == ComponentState.FAILED and comp.health == Health.RED
 
 
+def test_run_action_winget_already_installed_counts_as_success(winget_env, monkeypatch):
+    store = _store()
+    output = "Found an existing package already installed.\nNo available upgrade found."
+    monkeypatch.setattr(runner, "_stream", lambda *a, **k: (2316632107, output))
+    monkeypatch.setattr(
+        runner,
+        "rescan_component",
+        lambda s, key: {"key": key, "state": "detected", "health": "green"},
+    )
+    result = runner.run_action(store, "pnpm", "dependency", "install")
+    assert result["success"] is True
+    assert result["exit_code"] == 0
+
+
+def test_run_action_upgrade_falls_back_to_install(winget_env, monkeypatch):
+    store = _store()
+    calls = []
+
+    def fake_stream(s, cmd, timeout=None):
+        calls.append(cmd.action)
+        if cmd.action == "upgrade":
+            return 1, "No installed package found matching input criteria."
+        return 0, "Successfully installed"
+
+    monkeypatch.setattr(runner, "_stream", fake_stream)
+    monkeypatch.setattr(
+        runner,
+        "rescan_component",
+        lambda s, key: {"key": key, "state": "detected", "health": "green"},
+    )
+    result = runner.run_action(store, "powershell", "dependency", "upgrade")
+    assert result["success"] is True
+    assert calls == ["upgrade", "install"]
+
+
 # -- rescan -----------------------------------------------------------------------------
 def test_rescan_component_dependency(monkeypatch):
     store = _store()

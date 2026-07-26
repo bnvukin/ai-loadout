@@ -85,11 +85,11 @@ def _run_component(store, cmd: ActionCommand, result: dict, timeout: int | None)
         f"Starting {cmd.action}: {cmd.display}", source="action", target=cmd.key, kind="step"
     )
 
-    code, tail = _stream(store, cmd, timeout)
+    success, code, tail = _execute_with_recovery(store, cmd, timeout)
     result["ran"] = True
     result["exit_code"] = code
 
-    if code == 0:
+    if success:
         fresh = rescan_component(store, cmd.key)
         result["success"] = True
         result["component"] = fresh
@@ -106,6 +106,40 @@ def _run_component(store, cmd: ActionCommand, result: dict, timeout: int | None)
         store.bus.error(f"{cmd.name} {cmd.action} failed ({code})", source="action", target=cmd.key)
         result["error"] = err
     return result
+
+
+def _family_from_store(store) -> str | None:
+    return store.hardware.os_family if store.hardware else None
+
+
+def _execute_with_recovery(store, cmd: ActionCommand, timeout: int | None) -> tuple[bool, int, str]:
+    """Run ``cmd`` with winget upgrade→install fallback and already-satisfied detection."""
+
+    from . import winget as winget_outcomes
+
+    code, tail = _stream(store, cmd, timeout)
+    output = tail or ""
+
+    if (
+        code != 0
+        and cmd.action == "upgrade"
+        and cmd.manager == "winget"
+        and winget_outcomes.winget_upgrade_not_installed(output)
+    ):
+        install_cmd = build_command(cmd.key, cmd.kind, "install", family=_family_from_store(store))
+        if install_cmd.ok:
+            store.bus.info(
+                f"No winget upgrade target — falling back to install: {install_cmd.display}",
+                source="action",
+                target=cmd.key,
+            )
+            code, install_tail = _stream(store, install_cmd, timeout)
+            output = "\n".join(part for part in (output, install_tail) if part).strip()
+            tail = install_tail or tail
+
+    if winget_outcomes.winget_already_satisfied(code, output):
+        return True, 0, output
+    return code == 0, code, tail or output
 
 
 def _run_model_pull(store, cmd: ActionCommand, result: dict, timeout: int | None) -> dict:
