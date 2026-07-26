@@ -37,6 +37,9 @@ def detect_one(
     run_fn=proc.run,
     home: Path | None = None,
 ) -> dict:
+    from ..util.path_env import refresh_process_path
+
+    refresh_process_path()
     managers = managers or []
     home = home or Path.home()
     path = None

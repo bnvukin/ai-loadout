@@ -130,6 +130,9 @@ def detect_one(
 ) -> dict:
     """Detect a single dependency and return a result dict (no state mutation)."""
 
+    from ..util.path_env import refresh_process_path
+
+    refresh_process_path()
     managers = managers if managers is not None else available_managers(which_fn)
 
     if dep.special == "powershell":
