@@ -52,16 +52,48 @@ time without re-deriving context. Newest entries at the top.
   First run verified green (all 7 jobs) via `gh run watch`.
 - Batch 13: docs polish — README "Commands available today" table + accurate profile names,
   CLI checklist marked complete. 88 tests green locally and in CI.
+- Cleanup: rewrote history so every commit is authored/committed by **bnvukin only** (no
+  `cursoragent` co-author). Added a repo-local `commit-msg` hook that strips any
+  `Co-authored-by: Cursor` trailer from future commits; force-pushed the clean history.
 
-## Delivery snapshot (end of session 1)
-Shipped, tested (88 tests), and CI-green across 3 OSes: Layers 1-4, 10, 13, 18, the Config
-Center, and the full live dashboard (backend + SPA), plus profiles/planner and bootstrap
-scripts. Everything is read-only / dry-run; actual mutating installs (via the orchestrator)
-are the next major piece, followed by Layers 5-9, 11-12, 14-17, 19-20.
+### Session 2 — 2026-07-26 (Phase 2: make it act)
+User feedback on the live dashboard drove this phase: (SS1) anything not green must be
+resolvable in-dashboard with steps/impact; (SS2) one-click model install + local status;
+(SS3) Config Center must be editable and show *all* env vars.
+- Batch 14: **action engine** (`ai_loadout.actions`). `commands.py` builds exact argv for
+  install/upgrade (winget/choco/brew/apt/npm/pip; wraps Windows `.cmd`/`.bat` for
+  `shell=False`) and `ollama pull`; `runner.py` streams stdout → EventBus + `install.log`,
+  flips the component busy → re-detects it (green on success / FAILED+RED on error);
+  `repair.py` = Layer 11 (start-ollama/start-docker + install/update delegation);
+  `advice.py` = per-component impact / what-it-unlocks / docs link. 20 hermetic tests.
+- Batch 15: **actionable APIs** on the dashboard — `/api/component/{key}/{install,upgrade,
+  rescan}`, `/api/component/{key}/advice`, `/api/models/{key}/pull`, `/api/models/refresh`,
+  `/api/repair`, `GET /api/config/{key}?raw=1` + `POST /api/config/{key}` (save,
+  trust-gated + backup), and `GET /api/env` (every var, redacted). Orchestrator gained a
+  single-flight background action worker so installs don't block scans. 16 new tests.
+- Batch 16: **actionable SPA** — Components get Install/Update/Retry + "Why?" + re-detect
+  with a confirm modal (exact command + UAC/sudo warning) and a streaming action-log;
+  Overview issues get inline "Fix now"; Models install with one click + "installed" tag +
+  Refresh; Config Center opens an editor and saves (SAFE direct, ADVANCED/EXPERT gated) and
+  the env panel toggles AI-relevant/All with search. Vanilla JS modal/toast/spinner, no
+  build step. `node --check` clean.
+- Batch 17: docs — CHANGELOG/README/CHECKLIST/PROJECT-MEMORY updated for Phase 2.
 
-- (subsequent batches appended as delivered)
+## Delivery snapshot (session 2)
+122 tests green locally; the dashboard was verified live end-to-end on Windows: advice,
+dry-run install (no execution), per-component rescan (git → green), model refresh, repair
+preview (`ollama serve`), config raw-read, and all **71** environment variables surfaced.
+The dashboard can now *act* (with confirm + logs); the CLI stays read-only.
+
+**Still needed before recommending the repo for one-click setup by others:** a real
+mutating install (winget/brew/apt) + a multi-GB `ollama pull` run in a disposable VM on
+each OS, a PyPI publish (so `pip install ai-loadout` works without cloning), and a
+"install a whole profile" batch flow. Remaining layers: 5-9, 12, 14-17, 19-20.
 
 ## Open questions / future
 
-- Bootstrap entry scripts that install Python itself (the true "one command").
-- Real end-to-end install test in a disposable VM/sandbox before recommending mutating runs.
+- Real end-to-end install test in a disposable VM/sandbox per OS before recommending
+  mutating runs to strangers.
+- PyPI release + versioned tag so bootstrap can `pip install ai-loadout` (no git clone).
+- Batch profile install (run the whole `loadout plan` from the dashboard with live progress).
+- Elevation UX on Windows (some winget installs prompt UAC / need an elevated shell).

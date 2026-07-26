@@ -6,12 +6,14 @@ Legend: `[x]` done · `[~]` partial/functional-but-not-complete · `[ ]` not sta
 - [x] Repo scaffolding (license, packaging, docs, hygiene)
 - [x] Core state engine (digital twin) + events + lifecycle
 - [x] CLI entry point (`loadout` / `ai-loadout`) — version/info/scan/deps/runtimes/models/
-  health/doctor/config/plan/dashboard all live (mutating install actions still pending)
+  health/doctor/config/plan/dashboard all live (CLI stays read-only; mutations go via dashboard)
+- [x] Phase 2 action engine (`ai_loadout.actions`) — build argv (win/mac/linux) + streaming
+  runner (→ `install.log` + events) + single-component rescan + Layer 11 repairs + why/impact
 
 ## Layers
 - [x] 1. Machine validation (OS/CPU/RAM/GPU/VRAM/disk/internet/admin/virtualization)
 - [x] 2. Dependency manager (detect + decision tree)
-- [~] 3. AI runtime detect (Ollama/VS Code/Continue/CLIs) done; install via orchestrator
+- [x] 3. AI runtime detect (Ollama/VS Code/Continue/CLIs) + install via dashboard action engine
 - [x] 4. Model recommendation (catalog + hardware-aware table + estimates)
 - [ ] 5. Download manager (resume/retry/verify)
 - [ ] 6. VS Code configuration (extensions + settings)
@@ -19,7 +21,8 @@ Legend: `[x]` done · `[~]` partial/functional-but-not-complete · `[ ]` not sta
 - [ ] 8. Agent/MCP configuration
 - [ ] 9. Project templates
 - [x] 10. Health check (`loadout health` — twin + live probes → actionable issues)
-- [ ] 11. Auto repair
+- [~] 11. Auto repair — start-ollama / start-docker + install/update fixes wired to the
+  dashboard "Fix now" buttons; PATH-dedupe & permission repairs pending
 - [ ] 12. Benchmark
 - [x] 13. AI doctor (`loadout doctor` — plain-language explain/fix/why/restart)
 - [ ] 14. Security (checksums, official URLs)
@@ -31,18 +34,23 @@ Legend: `[x]` done · `[~]` partial/functional-but-not-complete · `[ ]` not sta
 - [ ] 20. Telemetry (opt-in)
 
 ## Pillars
-- [~] Config Center (`loadout config`) — discover + read (redacted) + env + PATH done;
-  trust-gated backup-first edit foundation in `config.edit`; dashboard editor pending
-- [x] Live dashboard — backend (`loadout dashboard`: FastAPI + `/ws` + orchestrator) and
-  frontend SPA (overview/components/models/config/activity, live progress) done
-- [~] Continuous health monitoring — live event stream done; periodic auto-rescan pending
+- [x] Config Center — discover + read (redacted) + env + PATH; **dashboard editor** opens,
+  edits and saves files (trust-gated + auto-backup); env panel lists **every** variable
+- [x] Live, **actionable** dashboard — backend (FastAPI + `/ws` + orchestrator + action
+  worker) and SPA where every non-green item is fixable (install/upgrade/repair/pull/edit)
+  with confirm + streaming logs + live badge updates
+- [~] Continuous health monitoring — live event stream + per-component rescan done; periodic
+  auto-rescan pending
 - [~] Zero-interrupt install flow + profiles/capabilities wizard — profiles + dry-run
-  planner (`loadout plan`) + bootstrap scripts done; interactive wizard + real installs pending
+  planner + bootstrap scripts + per-item installs done; batch "install a whole profile"
+  wizard pending
 - [ ] Connections page (deferred credentials/logins)
 
 ## Quality gates
-- [x] Unit tests (detection parsing via fixtures, recommendation, planner, config discovery)
-- [x] Dashboard smoke test (FastAPI TestClient + live `/ws` round-trip)
+- [x] Unit tests (detection parsing, recommendation, planner, config, action engine, endpoints)
+- [x] Dashboard smoke test (FastAPI TestClient + live `/ws` round-trip + action endpoints)
 - [x] CI (lint + test matrix: windows/macos/linux, py3.9 + py3.12)
-- [~] Manual end-to-end test notes / sandbox verification — read-only paths verified live;
-  mutating installs still need a disposable-VM run before recommending them
+- [~] Manual end-to-end verification — read-only paths + dashboard actions (advice, dry-run
+  install, rescan, model refresh, repair preview, config raw-read) verified live on Windows;
+  a **real** winget/brew/apt install + multi-GB model pull still need a disposable-VM run
+  before recommending the repo for one-click setup by others

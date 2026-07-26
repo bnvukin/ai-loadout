@@ -69,3 +69,26 @@ All notable changes to Loadout are documented here. The format is based on
   CLI smoke test (`version`/`scan`/`plan`).
 - Docs: README "Commands available today" reference table and accurate profile names; the
   build checklist reflects the shipped CLI surface.
+- **Phase 2 — action engine (`ai_loadout.actions`):** turns the read-only advisor into
+  something that can act. Builds the exact argv for install/upgrade
+  (winget/choco/brew/apt/npm/pip, with Windows `.cmd`/`.bat` wrapping) and model pulls;
+  a streaming runner executes it, tees stdout to the `EventBus` **and** `install.log`,
+  flips the component to a busy lifecycle state, then re-detects it so its badge reflects
+  reality (green on success, FAILED/RED with the error tail on failure). Layer 11 repairs
+  (`start-ollama`, `start-docker`, plus install/update delegation) and a per-component
+  "why / impact / docs link" advisor round it out. Everything defaults to explicit, logged
+  runs; a dry run returns the command that *would* execute.
+- **Phase 2 — actionable dashboard APIs:** `POST /api/component/{key}/{install,upgrade}`
+  (background, streamed), `/rescan` (re-detect one component), `GET
+  /api/component/{key}/advice`, `POST /api/models/{key}/pull` + `/api/models/refresh`,
+  `POST /api/repair`, `GET /api/config/{key}?raw=1` and `POST /api/config/{key}` (save,
+  trust-gated + backup), and `GET /api/env` (now lists **every** environment variable,
+  secrets masked). The orchestrator gained a single-flight background action worker.
+- **Phase 2 — actionable dashboard UI:** every non-green item is now resolvable in the
+  browser. Components show Install/Update/Retry + "Why?" + re-detect, with a confirm modal
+  (exact command, UAC/sudo warning) and a live action-log; Overview issues get inline
+  "Fix now" buttons. Models install with one click (live pull log) and show an "installed"
+  tag + Refresh for local status. The Config Center opens files in an editor and saves
+  them (SAFE directly; ADVANCED/EXPERT require typing CONFIRM/EDIT; automatic backup), and
+  the environment panel toggles AI-relevant / All with search. Adds a modal/toast/spinner
+  system — still vanilla JS, no build step.

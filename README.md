@@ -53,11 +53,15 @@ state. That is what turns "a bunch of scripts" into a platform you can extend.
 - **Hardware-aware model recommendations** — not a static list. A comparison table
   (coding / reasoning / speed / RAM / offline) plus *"on your RTX 4070 + 32 GB, Qwen3 8B
   will do ~75 tok/s, ~9.8 GB, 64K context."*
-- **Live dashboard** at `http://localhost:8421` — overall health, a GitHub-Actions-style
-  install timeline, per-layer progress bars, components, models, system graphs.
+- **Live, actionable dashboard** at `http://localhost:8421` — overall health, components,
+  models, config, and a live event stream. Anything that isn't green is fixable *from the
+  browser*: one-click Install/Update/Repair with a confirm step and streaming logs, a
+  "Why do I need this?" explainer per component, one-click model pulls, and a per-component
+  re-detect that flips the badge green.
 - **Config Center** — every scattered config (`.continue`, `.ollama`, `.gitconfig`,
-  VS Code `settings.json`, `PATH`, env vars ...) discovered, categorized, searchable,
-  read-only by default, editable behind a confirmation with automatic backup.
+  VS Code `settings.json`, `PATH`, and **every** environment variable) discovered,
+  categorized, searchable. Open a file, edit it, and save — SAFE files save directly,
+  ADVANCED/EXPERT require typing `CONFIRM`/`EDIT`, and every write is backed up first.
 - **Safety first** — official download sources only, checksum verification, three trust
   levels (🟢 Safe / 🟡 Advanced / 🔴 Expert), and "what changes / why / how to undo /
   restart needed" before any risky edit.
@@ -105,8 +109,11 @@ action and support a preview flag:
 
 ### Commands available today
 
-All of these are implemented and covered by the cross-platform test matrix. Everything is
-read-only / dry-run — nothing on your machine changes.
+All of these are implemented and covered by the cross-platform test matrix. The **CLI** is
+read-only / dry-run — nothing on your machine changes from the command line. The
+**dashboard** (`loadout dashboard`) can now *act* — install/upgrade/repair components, pull
+models, and edit config files — but only after an explicit confirmation, with everything
+logged to `install.log`.
 
 | Command | What it does |
 |---------|--------------|
@@ -163,8 +170,12 @@ Machine (digital twin)
 ```
 
 - `ai_loadout.core`  — the state engine (digital twin), events, lifecycle.
-- `ai_loadout.detect` — Layers 1 & 2 (machine + dependency detection).
+- `ai_loadout.detect` — Layer 1 (machine detection).
+- `ai_loadout.deps` / `ai_loadout.runtimes` — Layers 2 & 3 (toolchain + AI runtimes).
 - `ai_loadout.models` — Layer 4 (catalog + hardware-aware recommendation).
+- `ai_loadout.health` — Layers 10 & 13 (health check + AI doctor).
+- `ai_loadout.config` — Config Center (discover / read / trust-gated edit / env + PATH).
+- `ai_loadout.actions` — Phase 2 execution engine (build / run / repair, streamed).
 - `ai_loadout.dashboard` — FastAPI + WebSocket live UI at `:8421`.
 - ... (more modules added per layer)
 
@@ -180,13 +191,17 @@ works, not the vision.
 | Layer 1 — machine detection (`loadout scan`) | ✅ done |
 | Layer 4 — model recommendation (`loadout models`) | ✅ done |
 | Layer 2 — dependency manager (`loadout deps`) | ✅ done |
-| Layer 3 — AI runtime detection (`loadout runtimes`) | ✅ done (install via orchestrator) |
+| Layer 3 — AI runtime detection (`loadout runtimes`) | ✅ done |
 | Layers 10 & 13 — health check + AI doctor (`loadout health` / `loadout doctor`) | ✅ done |
-| Config Center — discover/read configs + env + PATH (`loadout config`) | ✅ done (edit gated) |
+| Config Center — discover/read configs + env + PATH (`loadout config`) | ✅ done |
 | Live dashboard — API + WebSocket + orchestrator + SPA UI (`loadout dashboard`) | ✅ done |
 | Layer 18 — profiles + dry-run install plan (`loadout plan`) | ✅ done |
 | Bootstrap scripts (`bootstrap.ps1` / `bootstrap.sh`) | ✅ done |
-| Everything else | ⏳ roadmap |
+| **Phase 2 — action engine (install/upgrade/pull/repair + streaming logs)** | ✅ done |
+| **Phase 2 — actionable dashboard (fix/install/pull/edit from the browser)** | ✅ done |
+| Layer 11 — auto-repair (start Ollama/Docker, install/update fixes) | 🟡 partial |
+| Config editing from the dashboard (trust-gated + backup) | ✅ done |
+| Layers 5–9, 12, 14–17, 19–20 | ⏳ roadmap |
 
 ## Safety & trust
 
