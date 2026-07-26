@@ -192,6 +192,9 @@ td.val { max-width: 520px; word-break: break-all; white-space: pre-wrap; vertica
 .copy-text { flex: 1; min-width: 0; }
 .copy-btn { flex: 0 0 auto; padding: 2px 7px; font-size: 13px; line-height: 1.2; opacity: .75; }
 .copy-btn:hover { opacity: 1; }
+.cmd-row { align-items: stretch; margin-bottom: 8px; }
+pre.cmd.cmd-flex { flex: 1; min-width: 0; margin: 0; }
+.link-row a { flex: 1; min-width: 0; word-break: break-all; }
 .pathbox { max-height: 40vh; overflow: auto; }
 .path-entry { margin-bottom: 4px; }
 .path-cell { cursor: pointer; }

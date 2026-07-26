@@ -86,6 +86,18 @@
       value
     )}" title="${esc(title)}" aria-label="${esc(title)}">&#x2398;</button>`;
   }
+  function cmdBlock(text, title = "Copy command") {
+    if (!text) return "";
+    return `<div class="copy-row cmd-row"><pre class="cmd cmd-flex">${esc(
+      text
+    )}</pre>${copyBtn(text, title)}</div>`;
+  }
+  function linkRow(url, label = "Docs") {
+    if (!url) return "";
+    return `<span class="copy-row link-row"><a href="${esc(url)}" target="_blank" rel="noopener">${esc(
+      label
+    )}</a>${copyBtn(url, "Copy link")}</span>`;
+  }
 
   function toast(msg, level = "info") {
     let host = $("#toasts");
@@ -441,12 +453,12 @@
       ? `<p class="lead">${esc(adv.impact || "")}</p>
          ${adv.needed_for ? `<p class="muted">Unlocks: ${esc(adv.needed_for)}</p>` : ""}
          <div class="cmd-label">This command will run:</div>
-         <pre class="cmd">${esc(cmd.display)}</pre>
+         ${cmdBlock(cmd.display)}
          ${cmd.needs_admin ? '<div class="banner warn">This may prompt for administrator access (UAC / sudo).</div>' : ""}
-         ${adv.link ? `<p class="muted tiny">Docs: <a href="${esc(adv.link)}" target="_blank" rel="noopener">${esc(adv.link)}</a></p>` : ""}`
+         ${adv.link ? `<p class="muted tiny">${linkRow(adv.link)}</p>` : ""}`
       : `<p class="lead">${esc(adv.impact || "")}</p>
          <div class="banner warn">${esc(cmd.reason || "No automatic installer available.")}</div>
-         ${adv.link ? `<p>Install manually: <a href="${esc(adv.link)}" target="_blank" rel="noopener">${esc(adv.link)}</a></p>` : ""}`;
+         ${adv.link ? `<p>${linkRow(adv.link, adv.link)}</p>` : ""}`;
     const foot = cmd.ok
       ? `<button class="btn ghost" data-act="modal-close">Cancel</button>
          <button class="btn" id="confirm-run">${action === "upgrade" ? "Update" : "Install"} now</button>`
@@ -470,7 +482,7 @@
     const body = cmd.ok
       ? `<p class="lead">Download and register this model with Ollama.</p>
          <div class="cmd-label">This command will run:</div>
-         <pre class="cmd">${esc(cmd.display)}</pre>
+         ${cmdBlock(cmd.display, "Copy pull command")}
          <div class="banner">Models are large (GBs) - the first pull can take a while.</div>`
       : `<div class="banner warn">${esc(cmd.reason || "Ollama is required to pull models.")}</div>
          <p>Install Ollama from the Components tab first.</p>`;
@@ -525,9 +537,11 @@
     cell.innerHTML = `<div class="why-box">
       <div><strong>Impact if missing:</strong> ${esc(adv.impact || "")}</div>
       ${adv.needed_for ? `<div><strong>Needed for:</strong> ${esc(adv.needed_for)}</div>` : ""}
-      <div class="muted tiny">${adv.optional ? "Optional" : "Recommended"} ${
-        adv.link ? `· <a href="${esc(adv.link)}" target="_blank" rel="noopener">docs</a>` : ""
+      <div class="muted tiny">${adv.optional ? "Optional" : "Recommended"}${
+        adv.link ? ` · ${linkRow(adv.link, "documentation")}` : ""
       }</div>
+      ${info.install && info.install.ok ? `<div class="cmd-label">Install command:</div>${cmdBlock(info.install.display)}` : ""}
+      ${info.upgrade && info.upgrade.ok ? `<div class="cmd-label">Update command:</div>${cmdBlock(info.upgrade.display, "Copy update command")}` : ""}
     </div>`;
   }
 
@@ -544,7 +558,7 @@
       : "";
     const body = `
       <div class="editor-meta"><span class="trust ${esc(trust)}">${esc(trust)}</span>
-        <span class="mono muted tiny">${esc(res.path || cf.path || "")}</span></div>
+        <span class="copy-row"><span class="mono muted tiny">${esc(res.path || cf.path || "")}</span>${copyBtn(res.path || cf.path || "", "Copy path")}</span></div>
       ${secretWarn}
       <textarea class="editor" id="editor" spellcheck="false">${esc(content)}</textarea>
       ${
@@ -575,6 +589,7 @@
   function openActionLog(target, title) {
     const body = `<pre class="action-log" id="action-log">Starting...\n</pre>`;
     const foot = `<span class="muted tiny" id="action-done"></span>
+      <button class="btn sm ghost" data-act="copy-log">Copy log</button>
       <button class="btn ghost" data-act="modal-close">Close</button>`;
     openModal(title, body, foot);
     store.action = { target, logEl: $("#action-log"), doneEl: $("#action-done") };
@@ -717,6 +732,11 @@
     if (!el) return;
     const act = el.dataset.act;
     if (act === "modal-close") return closeModal();
+    if (act === "copy-log") {
+      const log = $("#action-log");
+      if (log) copyText(log.textContent || "", "Log copied");
+      return;
+    }
     if (act === "copy") return copyText(el.dataset.copy || "", el.dataset.label || "Copied");
     if (act === "install") return startComponentAction(el.dataset.key, "install");
     if (act === "upgrade") return startComponentAction(el.dataset.key, "upgrade");
