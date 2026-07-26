@@ -43,6 +43,10 @@ time without re-deriving context. Newest entries at the top.
 - Batch 10: dashboard frontend — dependency-free vanilla-JS SPA (no build step) with
   Overview/Components/Models/Config/Activity views, live WebSocket updates, a Rescan
   button and per-task progress chips. Verified live: assets serve, scan runs end-to-end.
+- Batch 11: Layer 18 profiles + planner (`loadout plan`) reconciling a profile/capabilities
+  against the twin into a dry-run install plan (real package-manager commands, hardware-aware
+  model pick), plus `bootstrap.ps1`/`bootstrap.sh` one-command entry scripts. Verified live:
+  `plan --profile ml-engineer` correctly skipped present tools and emitted winget/pip/ollama steps.
 - (subsequent batches appended as delivered)
 
 ## Open questions / future

@@ -56,3 +56,11 @@ All notable changes to Loadout are documented here. The format is based on
   the backend, with Overview (health ring + machine + issues), Components, Models, Config
   Center (with a redacted file viewer), and a live Activity stream. A "Rescan" button
   triggers the orchestrator and per-task progress chips update in real time over `/ws`.
+- Layer 18 profiles + install planner (`loadout plan`): curated "loadouts" (minimal,
+  student, web-ai-dev, agentic-coder, ai-research, ml-engineer) plus add-on capabilities
+  (containers, gpu, web-ui, coding-agents). `build_plan` reconciles a profile against the
+  digital twin and emits an ordered, **dry-run** plan (install/upgrade/pull/skip/manual)
+  with the exact package-manager command per step and a hardware-aware model pick.
+- Bootstrap scripts (`bootstrap.ps1`, `bootstrap.sh`): the "one command" from a bare
+  machine — ensure Python (winget/Homebrew/apt), install Loadout, run the first scan.
+  Official sources only, every action printed, `-DryRun`/`--dry-run` preview.

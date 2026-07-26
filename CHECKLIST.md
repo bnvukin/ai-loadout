@@ -25,7 +25,7 @@ Legend: `[x]` done · `[~]` partial/functional-but-not-complete · `[ ]` not sta
 - [ ] 15. Logging (install/benchmark logs, diagnostics.zip)
 - [ ] 16. Update manager
 - [ ] 17. Backup / restore
-- [ ] 18. Profiles
+- [x] 18. Profiles (`loadout plan` — curated loadouts + capabilities → dry-run plan)
 - [ ] 19. Offline support
 - [ ] 20. Telemetry (opt-in)
 
@@ -35,7 +35,8 @@ Legend: `[x]` done · `[~]` partial/functional-but-not-complete · `[ ]` not sta
 - [x] Live dashboard — backend (`loadout dashboard`: FastAPI + `/ws` + orchestrator) and
   frontend SPA (overview/components/models/config/activity, live progress) done
 - [~] Continuous health monitoring — live event stream done; periodic auto-rescan pending
-- [ ] Zero-interrupt install flow + profiles/capabilities wizard
+- [~] Zero-interrupt install flow + profiles/capabilities wizard — profiles + dry-run
+  planner (`loadout plan`) + bootstrap scripts done; interactive wizard + real installs pending
 - [ ] Connections page (deferred credentials/logins)
 
 ## Quality gates

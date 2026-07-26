@@ -79,14 +79,28 @@ pip install -e ".[dashboard]"
 
 # 3. Scan your machine (read-only) and see what Loadout would do
 loadout scan
-loadout plan --profile ai-developer --dry-run
+loadout plan --list
+loadout plan --profile ml-engineer          # dry-run install plan for this machine
 
 # 4. Open the live dashboard
 loadout dashboard
 ```
 
-One-command bootstrap scripts (`bootstrap.ps1` / `bootstrap.sh`) that install Python for
-you and launch the wizard are part of the roadmap below.
+Prefer one command from a bare machine? The bootstrappers install Python for you (via
+winget / Homebrew / apt), install Loadout, and run the first scan. They print every
+action and support a preview flag:
+
+```powershell
+# Windows (PowerShell)
+./bootstrap.ps1 -DryRun        # preview
+./bootstrap.ps1 -Dashboard     # install + open the dashboard
+```
+
+```bash
+# macOS / Linux
+./bootstrap.sh --dry-run       # preview
+./bootstrap.sh --dashboard     # install + open the dashboard
+```
 
 ## The 20 layers
 
@@ -153,6 +167,8 @@ works, not the vision.
 | Layers 10 & 13 — health check + AI doctor (`loadout health` / `loadout doctor`) | ✅ done |
 | Config Center — discover/read configs + env + PATH (`loadout config`) | ✅ done (edit gated) |
 | Live dashboard — API + WebSocket + orchestrator + SPA UI (`loadout dashboard`) | ✅ done |
+| Layer 18 — profiles + dry-run install plan (`loadout plan`) | ✅ done |
+| Bootstrap scripts (`bootstrap.ps1` / `bootstrap.sh`) | ✅ done |
 | Everything else | ⏳ roadmap |
 
 ## Safety & trust

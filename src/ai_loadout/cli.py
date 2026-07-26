@@ -322,6 +322,63 @@ def cmd_config(args: argparse.Namespace) -> int:
     return 0
 
 
+_ACTION_SYMBOL = {
+    "install": "[install]",
+    "upgrade": "[upgrade]",
+    "pull": "[ pull  ]",
+    "skip": "[ have  ]",
+    "manual": "[manual ]",
+}
+
+
+def cmd_plan(args: argparse.Namespace) -> int:
+    """Layer 18 - build a dry-run install plan for a profile (+capabilities)."""
+
+    from .core.state import load_state
+    from .plan.planner import build_plan_from_scratch
+    from .profiles.registry import PROFILES
+
+    if args.list:
+        print(BANNER)
+        print("Available profiles (loadouts):\n")
+        for p in PROFILES:
+            print(f"  {p.key:<15} {p.name}")
+            print(f"  {'':<15} {p.description}")
+            print(f"  {'':<15} caps: {', '.join(p.capabilities) or '-'}\n")
+        print("Use:  loadout plan --profile <key> [--capabilities a,b] [--no-models]")
+        return 0
+
+    if not args.profile and not args.capabilities:
+        print("Pick a profile or capabilities. See:  loadout plan --list")
+        return 2
+
+    store = load_state()
+    caps = [c.strip() for c in (args.capabilities or "").split(",") if c.strip()]
+    plan = build_plan_from_scratch(store, args.profile, caps, include_models=not args.no_models)
+    if args.json:
+        _print_json(plan.to_dict())
+        return 0
+
+    print(BANNER)
+    title = plan.profile or "custom"
+    print(f"Install plan for profile: {title}")
+    if plan.capabilities:
+        print(f"Capabilities: {', '.join(plan.capabilities)}")
+    print()
+    for step in plan.steps:
+        symbol = _ACTION_SYMBOL.get(step.action, "[   ?   ]")
+        opt = "  (optional)" if step.optional and step.action in ("install", "manual") else ""
+        print(f"  {symbol} {step.name:<26} {step.reason}{opt}")
+        if step.command:
+            print(f"            $ {step.command}")
+    summary = plan.summary()
+    parts = [f"{v} to {k}" for k, v in summary.items() if k != "skip"]
+    have = summary.get("skip", 0)
+    print(f"\nSummary: {', '.join(parts) or 'nothing to do'} ({have} already present).")
+    print("This is a dry run. Nothing was installed.")
+    return 0
+
+
 def cmd_dashboard(args: argparse.Namespace) -> int:
     """Serve the live dashboard (FastAPI + WebSocket over the digital twin)."""
 
@@ -358,15 +415,6 @@ def cmd_info(args: argparse.Namespace) -> int:
         for c in comps:
             print(f"  [{c['health']:<6}] {c['name']:<18} {c['state']:<12} {c.get('version') or ''}")
     return 0
-
-
-# Handlers registered by later layers can override these friendly stubs.
-def _stub(name: str, hint: str):
-    def handler(args: argparse.Namespace) -> int:
-        print(f"`loadout {name}` is not available in this build yet.\n{hint}")
-        return 2
-
-    return handler
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -415,10 +463,12 @@ def build_parser() -> argparse.ArgumentParser:
     p_dash.add_argument("--no-browser", action="store_true", help="do not open a browser window")
     p_dash.set_defaults(func=cmd_dashboard)
 
-    # Registered fully in later batches; discoverable now so `--help` lists them.
-    for name, hint in (("plan", "Installation planning lands with profiles/capabilities."),):
-        sp = sub.add_parser(name, help=f"[coming soon] {name}")
-        sp.set_defaults(func=_stub(name, hint))
+    p_plan = sub.add_parser("plan", help="dry-run install plan for a profile (Layer 18)")
+    p_plan.add_argument("--profile", help="profile key (see --list)")
+    p_plan.add_argument("--capabilities", help="comma-separated add-ons, e.g. containers,gpu")
+    p_plan.add_argument("--no-models", action="store_true", help="skip model download steps")
+    p_plan.add_argument("--list", action="store_true", help="list available profiles")
+    p_plan.set_defaults(func=cmd_plan)
 
     return parser
 
