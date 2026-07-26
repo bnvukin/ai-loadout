@@ -79,3 +79,8 @@ src = ["src", "tests"]
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B", "W"]
 ignore = ["E501"]
+
+# FastAPI route params are evaluated by Pydantic at runtime on py3.9 — ``dict | None``
+# breaks there even with ``from __future__ import annotations``.
+[tool.ruff.lint.per-file-ignores]
+"src/ai_loadout/dashboard/server.py" = ["UP045"]

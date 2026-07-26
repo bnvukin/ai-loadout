@@ -16,6 +16,7 @@ from __future__ import annotations
 
 import asyncio
 from pathlib import Path
+from typing import Optional
 
 from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
 from fastapi.responses import FileResponse, HTMLResponse
@@ -147,11 +148,11 @@ def create_app(store: StateStore | None = None, orchestrator: Orchestrator | Non
         }
 
     @app.post("/api/component/{key}/install")
-    def component_install(key: str, payload: dict | None = None) -> dict:
+    def component_install(key: str, payload: Optional[dict] = None) -> dict:
         return _run_or_preview(key, _kind_for(key), "install", payload or {})
 
     @app.post("/api/component/{key}/upgrade")
-    def component_upgrade(key: str, payload: dict | None = None) -> dict:
+    def component_upgrade(key: str, payload: Optional[dict] = None) -> dict:
         return _run_or_preview(key, _kind_for(key), "upgrade", payload or {})
 
     @app.post("/api/component/{key}/rescan")
@@ -161,7 +162,7 @@ def create_app(store: StateStore | None = None, orchestrator: Orchestrator | Non
         return {"component": rescan_component(store, key)}
 
     @app.post("/api/models/{key}/pull")
-    def model_pull(key: str, payload: dict | None = None) -> dict:
+    def model_pull(key: str, payload: Optional[dict] = None) -> dict:
         from ..actions.runner import preview, run_action
 
         command = preview(key, "model", "pull")
@@ -178,7 +179,7 @@ def create_app(store: StateStore | None = None, orchestrator: Orchestrator | Non
         return {"models": refresh_local_models(store)}
 
     @app.post("/api/repair")
-    def do_repair(payload: dict | None = None) -> dict:
+    def do_repair(payload: Optional[dict] = None) -> dict:
         from ..actions.repair import repair as run_repair
 
         payload = payload or {}
@@ -193,7 +194,7 @@ def create_app(store: StateStore | None = None, orchestrator: Orchestrator | Non
         )
 
     @app.post("/api/config/{key}")
-    def config_save(key: str, payload: dict | None = None) -> dict:
+    def config_save(key: str, payload: Optional[dict] = None) -> dict:
         from ..config.edit import CONFIRM_TOKENS, EditError, apply_edit
         from ..config.registry import by_key as cfg_by_key
 
