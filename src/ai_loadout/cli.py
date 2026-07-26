@@ -35,25 +35,66 @@ def cmd_version(args: argparse.Namespace) -> int:
     return 0
 
 
+_DECISION_SYMBOL = {
+    "skip": "[ ok    ]",
+    "upgrade": "[ update]",
+    "install": "[missing]",
+    "manual": "[missing]",
+}
+
+
+def _render_deps(results: list) -> None:
+    print("\nToolchain:")
+    for r in results:
+        symbol = _DECISION_SYMBOL.get(r["decision"], "[  ?   ]")
+        version = r["version"] or ""
+        opt = "  (optional)" if r.get("optional") and r["decision"] in ("install", "manual") else ""
+        print(f"  {symbol} {r['name']:<26} {version:<12} {r['detail']}{opt}")
+
+
 def cmd_scan(args: argparse.Namespace) -> int:
-    """Layer 1 - read-only machine scan; writes the result into the digital twin."""
+    """Layers 1-2 - read-only machine + toolchain scan; writes into the digital twin."""
 
     from .core.state import load_state
+    from .deps.detect import detect_all
     from .detect.system import scan, summarize
 
     store = load_state()
     hw = scan(store)
+    dep_results = detect_all(store)
     if args.json:
         _print_json(store.snapshot())
         return 0
     print(BANNER)
     for line in summarize(hw):
         print(line)
+    _render_deps(dep_results)
     if hw.warnings:
         print("\nNotes:")
         for warning in hw.warnings:
             print(f"  ! {warning}")
-    print("\nSaved to the digital twin.  Next:  loadout plan   ·   loadout dashboard")
+    print("\nSaved to the digital twin.  Next:  loadout models   ·   loadout dashboard")
+    return 0
+
+
+def cmd_deps(args: argparse.Namespace) -> int:
+    """Layer 2 - detect the developer toolchain and decide skip/upgrade/install."""
+
+    from .core.state import load_state
+    from .deps.detect import detect_all
+    from .deps.managers import available_managers
+
+    store = load_state()
+    if store.hardware is None:
+        from .detect.system import scan
+
+        scan(store)
+    results = detect_all(store)
+    if args.json:
+        _print_json({"managers": available_managers(), "dependencies": results})
+        return 0
+    print(f"Package managers available: {', '.join(available_managers()) or 'none'}")
+    _render_deps(results)
     return 0
 
 
@@ -151,8 +192,11 @@ def build_parser() -> argparse.ArgumentParser:
     p_info = sub.add_parser("info", help="show the last persisted machine snapshot")
     p_info.set_defaults(func=cmd_info)
 
-    p_scan = sub.add_parser("scan", help="detect this machine (Layer 1, read-only)")
+    p_scan = sub.add_parser("scan", help="detect machine + toolchain (Layers 1-2, read-only)")
     p_scan.set_defaults(func=cmd_scan)
+
+    p_deps = sub.add_parser("deps", help="detect the developer toolchain (Layer 2)")
+    p_deps.set_defaults(func=cmd_deps)
 
     p_models = sub.add_parser("models", help="hardware-aware model recommendations (Layer 4)")
     p_models.set_defaults(func=cmd_models)

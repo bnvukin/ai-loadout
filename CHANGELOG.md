@@ -26,3 +26,8 @@ All notable changes to Loadout are documented here. The format is based on
   model, ranks the catalog for the detected machine (fits / tight / too_big), assigns
   "Best Overall / Fastest / Best Coding" labels, and explains the top pick. `loadout
   models` renders the comparison table.
+- Layer 2 (dependency manager): version-tolerant detection of Git/Python/Node/npm/pnpm/
+  uv/Docker/PowerShell/WSL/winget/Chocolatey/Homebrew/CUDA/VS Build Tools with a
+  skip/upgrade/install decision per tool, package-manager awareness (winget/choco/brew/
+  apt/...), and injectable probes for hermetic testing. `loadout scan` now also reports the
+  toolchain; `loadout deps` gives a focused view.

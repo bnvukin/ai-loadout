@@ -148,7 +148,8 @@ works, not the vision.
 | Core state engine (digital twin) | ✅ done |
 | Layer 1 — machine detection (`loadout scan`) | ✅ done |
 | Layer 4 — model recommendation (`loadout models`) | ✅ done |
-| Layer 2 — dependency manager | 🚧 next |
+| Layer 2 — dependency manager (`loadout deps`) | ✅ done |
+| Layer 3 — AI runtime detect/install | 🚧 next |
 | Live dashboard | ⏳ |
 | Everything else | ⏳ roadmap |
 
