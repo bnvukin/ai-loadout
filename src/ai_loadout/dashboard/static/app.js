@@ -39,6 +39,7 @@
     view: "overview",
     events: [],
     seen: new Set(),
+    lastEventId: 0,
     tasks: {},
     installed: new Set(), // local model tags
     envMode: "known", // known | all
@@ -57,6 +58,35 @@
   function fmtTime(ts) {
     return new Date((ts || 0) * 1000).toLocaleTimeString();
   }
+  async function copyText(text, label = "Copied") {
+    const value = text == null ? "" : String(text);
+    try {
+      await navigator.clipboard.writeText(value);
+      toast(label, "success");
+      return;
+    } catch (_) {}
+    try {
+      const ta = document.createElement("textarea");
+      ta.value = value;
+      ta.setAttribute("readonly", "");
+      ta.style.position = "fixed";
+      ta.style.left = "-9999px";
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand("copy");
+      ta.remove();
+      toast(label, "success");
+    } catch (_) {
+      toast("Copy failed.", "warning");
+    }
+  }
+  function copyBtn(value, title = "Copy") {
+    if (value == null || value === "") return "";
+    return `<button class="btn sm ghost copy-btn" data-act="copy" data-copy="${esc(
+      value
+    )}" title="${esc(title)}" aria-label="${esc(title)}">&#x2398;</button>`;
+  }
+
   function toast(msg, level = "info") {
     let host = $("#toasts");
     if (!host) {
@@ -97,6 +127,7 @@
     return overlay;
   }
   function closeModal() {
+    stopActionPolling();
     const m = $("#modal");
     if (m) m.remove();
     store.action = null;
@@ -290,7 +321,12 @@
         <td><strong>${esc(cf.name)}</strong><div class="muted tiny">${esc(cf.description || "")}</div></td>
         <td><span class="trust ${esc(cf.trust)}">${esc(cf.trust)}</span></td>
         <td>${cf.exists ? badge("green") : badge("gray")}</td>
-        <td class="mono muted path-cell" data-act="edit-config" data-cfg="${esc(cf.key)}" title="Open / edit">${esc(cf.path || "")}</td>
+        <td class="mono muted path-cell">
+          <span class="copy-row">
+            <span class="copy-text path-cell" data-act="edit-config" data-cfg="${esc(cf.key)}" title="Open / edit">${esc(cf.path || "")}</span>
+            ${copyBtn(cf.path || "", "Copy path")}
+          </span>
+        </td>
         <td class="right"><button class="btn sm ghost" data-act="edit-config" data-cfg="${esc(cf.key)}">${cf.exists ? "Edit" : "Create"}</button></td>
       </tr>`
       )
@@ -323,9 +359,12 @@
           <div class="mono pathbox">${(p.entries || [])
             .map(
               (e) =>
-                `<div>${esc(e.path)} ${
+                `<div class="copy-row path-entry">
+                  <span class="copy-text" title="${esc(e.path)}">${esc(e.path)} ${
                   e.exists ? "" : '<span style="color:var(--red)">MISSING</span>'
-                } ${e.duplicate ? '<span style="color:var(--yellow)">DUP</span>' : ""}</div>`
+                } ${e.duplicate ? '<span style="color:var(--yellow)">DUP</span>' : ""}</span>
+                  ${copyBtn(e.path, "Copy PATH entry")}
+                </div>`
             )
             .join("")}</div>
         </div>
@@ -352,7 +391,13 @@
         (e) =>
           `<tr>
             <td class="mono">${esc(e.name)}${e.secret ? ' <span class="tag secret">secret</span>' : ""}</td>
-            <td class="mono val">${e.present ? esc(e.value) : '<span class="muted">not set</span>'}</td>
+            <td class="mono val">${
+              e.present
+                ? `<span class="copy-row"><span class="copy-text" title="${esc(e.value)}">${esc(
+                    e.value
+                  )}</span>${copyBtn(e.value, "Copy value")}</span>`
+                : '<span class="muted">not set</span>'
+            }</td>
           </tr>`
       )
       .join("");
@@ -533,6 +578,7 @@
       <button class="btn ghost" data-act="modal-close">Close</button>`;
     openModal(title, body, foot);
     store.action = { target, logEl: $("#action-log"), doneEl: $("#action-done") };
+    startActionPolling();
   }
   function appendActionLog(line) {
     if (!store.action || !store.action.logEl) return;
@@ -574,6 +620,7 @@
   function handleEvent(ev) {
     if (store.seen.has(ev.id)) return;
     store.seen.add(ev.id);
+    if (ev.id > store.lastEventId) store.lastEventId = ev.id;
     store.events.push(ev);
     if (ev.message && /Scan started/i.test(ev.message)) store.tasks = {};
     if (ev.kind === "progress" && ev.data && ev.data.status) {
@@ -604,6 +651,37 @@
         log.scrollTop = log.scrollHeight;
       }
     }
+  }
+
+  let actionPollTimer = null;
+  let actionPollAfterId = 0;
+
+  function stopActionPolling() {
+    if (actionPollTimer) {
+      clearInterval(actionPollTimer);
+      actionPollTimer = null;
+    }
+  }
+
+  async function startActionPolling() {
+    stopActionPolling();
+    try {
+      const snap = await api("/api/events");
+      actionPollAfterId = snap.last || store.lastEventId || 0;
+    } catch (_) {
+      actionPollAfterId = store.lastEventId || 0;
+    }
+    actionPollTimer = setInterval(async () => {
+      if (!store.action) {
+        stopActionPolling();
+        return;
+      }
+      try {
+        const snap = await api(`/api/events?after=${actionPollAfterId}`);
+        actionPollAfterId = snap.last || actionPollAfterId;
+        for (const ev of snap.events || []) handleEvent(ev);
+      } catch (_) {}
+    }, 1200);
   }
 
   function connect() {
@@ -639,6 +717,7 @@
     if (!el) return;
     const act = el.dataset.act;
     if (act === "modal-close") return closeModal();
+    if (act === "copy") return copyText(el.dataset.copy || "", el.dataset.label || "Copied");
     if (act === "install") return startComponentAction(el.dataset.key, "install");
     if (act === "upgrade") return startComponentAction(el.dataset.key, "upgrade");
     if (act === "rescan") return rescanComponent(el.dataset.key);
@@ -668,6 +747,12 @@
     });
     api("/api/version")
       .then((v) => ($("#foot").textContent = `Loadout ${v.version}`))
+      .catch(() => {});
+    api("/api/events")
+      .then((snap) => {
+        actionPollAfterId = snap.last || 0;
+        for (const ev of snap.events || []) handleEvent(ev);
+      })
       .catch(() => {});
     setView("overview");
     connect();

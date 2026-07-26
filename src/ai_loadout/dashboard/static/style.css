@@ -187,8 +187,13 @@ pre.file { background: #0a0e16; border: 1px solid var(--border); border-radius: 
 .seg-btn.on { background: var(--panel-2); color: var(--text); }
 .search { width: 100%; background: #0a0e16; border: 1px solid var(--border); color: var(--text); border-radius: 8px; padding: 8px 10px; font-size: 13px; margin-bottom: 8px; }
 .search:focus { outline: none; border-color: var(--accent); }
-td.val { max-width: 340px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+td.val { max-width: 520px; word-break: break-all; white-space: pre-wrap; vertical-align: top; }
+.copy-row { display: flex; align-items: flex-start; gap: 6px; }
+.copy-text { flex: 1; min-width: 0; }
+.copy-btn { flex: 0 0 auto; padding: 2px 7px; font-size: 13px; line-height: 1.2; opacity: .75; }
+.copy-btn:hover { opacity: 1; }
 .pathbox { max-height: 40vh; overflow: auto; }
+.path-entry { margin-bottom: 4px; }
 .path-cell { cursor: pointer; }
 .path-cell:hover { color: var(--accent); }
 

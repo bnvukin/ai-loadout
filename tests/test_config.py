@@ -49,6 +49,16 @@ def test_inspect_env_redacts_secrets_and_reports_presence():
     assert rows["CUDA_PATH"]["present"] is False and rows["CUDA_PATH"]["value"] is None
 
 
+def test_inspect_all_env_returns_full_non_secret_values():
+    long_val = "segment/" + ("x" * 480)
+    fake = {"LOADOUT_LONG_PATH": long_val, "HF_TOKEN": "hf_abcdefghijklmnop1234567890"}
+    rows = {r["name"]: r for r in env.inspect_all_env(environ=fake)}
+    assert rows["LOADOUT_LONG_PATH"]["value"] == long_val
+    assert len(rows["LOADOUT_LONG_PATH"]["value"]) == len(long_val)
+    assert rows["HF_TOKEN"]["secret"] is True
+    assert "abcdefgh" not in rows["HF_TOKEN"]["value"]
+
+
 def test_path_summary_flags_missing_and_duplicates(tmp_path):
     real = str(tmp_path)
     missing = str(tmp_path / "does-not-exist")
