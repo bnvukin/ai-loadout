@@ -322,6 +322,14 @@ def cmd_config(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_dashboard(args: argparse.Namespace) -> int:
+    """Serve the live dashboard (FastAPI + WebSocket over the digital twin)."""
+
+    from .dashboard.run import serve
+
+    return serve(host=args.host, port=args.port, open_browser=not args.no_browser)
+
+
 def cmd_info(args: argparse.Namespace) -> int:
     """Show the last persisted digital-twin snapshot without rescanning."""
 
@@ -401,11 +409,14 @@ def build_parser() -> argparse.ArgumentParser:
     p_config.add_argument("--path", action="store_true", help="show PATH entries + issues only")
     p_config.set_defaults(func=cmd_config)
 
+    p_dash = sub.add_parser("dashboard", help="serve the live dashboard (needs [dashboard] extra)")
+    p_dash.add_argument("--host", default="127.0.0.1", help="bind host (default: 127.0.0.1)")
+    p_dash.add_argument("--port", type=int, default=8421, help="bind port (default: 8421)")
+    p_dash.add_argument("--no-browser", action="store_true", help="do not open a browser window")
+    p_dash.set_defaults(func=cmd_dashboard)
+
     # Registered fully in later batches; discoverable now so `--help` lists them.
-    for name, hint in (
-        ("plan", "Installation planning lands with profiles/capabilities."),
-        ("dashboard", "The live dashboard lands with the dashboard module."),
-    ):
+    for name, hint in (("plan", "Installation planning lands with profiles/capabilities."),):
         sp = sub.add_parser(name, help=f"[coming soon] {name}")
         sp.set_defaults(func=_stub(name, hint))
 

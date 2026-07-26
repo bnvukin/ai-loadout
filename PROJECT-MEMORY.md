@@ -37,6 +37,9 @@ time without re-deriving context. Newest entries at the top.
 - Batch 8: Config Center (`loadout config`) — discover well-known config files across OSes,
   inspect AI env vars, analyse PATH (missing/duplicates); secrets redacted, read-only.
   Trust-gated, backup-first edits live in `config.edit` (foundation for the dashboard).
+- Batch 9: dashboard backend (`loadout dashboard`) — FastAPI over the twin (read APIs +
+  scan trigger), background Orchestrator running detection layers off-thread, and a `/ws`
+  WebSocket bridging the EventBus to the browser. Web stack is the `[dashboard]` extra.
 - (subsequent batches appended as delivered)
 
 ## Open questions / future

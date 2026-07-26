@@ -32,7 +32,8 @@ Legend: `[x]` done · `[~]` partial/functional-but-not-complete · `[ ]` not sta
 ## Pillars
 - [~] Config Center (`loadout config`) — discover + read (redacted) + env + PATH done;
   trust-gated backup-first edit foundation in `config.edit`; dashboard editor pending
-- [ ] Live dashboard (health, install timeline, live install, components, models, system)
+- [~] Live dashboard — backend done (`loadout dashboard`: FastAPI + `/ws` + orchestrator);
+  frontend pages (health, live install, components, models, config) pending
 - [ ] Continuous health monitoring
 - [ ] Zero-interrupt install flow + profiles/capabilities wizard
 - [ ] Connections page (deferred credentials/logins)

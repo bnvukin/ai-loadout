@@ -46,3 +46,9 @@ All notable changes to Loadout are documented here. The format is based on
   Everything is **read-only** and secrets are redacted before display; `--show <key>`,
   `--env` and `--path` focus the view. Trust-gated, backup-first edits are implemented in
   `config.edit` (used by the dashboard later; not yet exposed on the CLI).
+- Live dashboard backend (`loadout dashboard`): a FastAPI app over the digital twin with
+  read APIs (`/api/state`, `/api/health`, `/api/hardware`, `/api/components`, `/api/models`,
+  `/api/config`), a scan trigger (`POST /api/scan`, `/api/tasks/{name}`), and a `/ws`
+  WebSocket that streams `EventBus` events live. A background `Orchestrator` runs the
+  detection layers off the request thread and reports per-task status. The web stack is an
+  optional extra (`pip install ai-loadout[dashboard]`). UI bundle lands next.
