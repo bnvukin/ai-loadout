@@ -51,4 +51,8 @@ All notable changes to Loadout are documented here. The format is based on
   `/api/config`), a scan trigger (`POST /api/scan`, `/api/tasks/{name}`), and a `/ws`
   WebSocket that streams `EventBus` events live. A background `Orchestrator` runs the
   detection layers off the request thread and reports per-task status. The web stack is an
-  optional extra (`pip install ai-loadout[dashboard]`). UI bundle lands next.
+  optional extra (`pip install ai-loadout[dashboard]`).
+- Live dashboard UI: a dependency-free, no-build vanilla-JS SPA (dark theme) served from
+  the backend, with Overview (health ring + machine + issues), Components, Models, Config
+  Center (with a redacted file viewer), and a live Activity stream. A "Rescan" button
+  triggers the orchestrator and per-task progress chips update in real time over `/ws`.

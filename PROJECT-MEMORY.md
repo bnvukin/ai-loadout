@@ -40,6 +40,9 @@ time without re-deriving context. Newest entries at the top.
 - Batch 9: dashboard backend (`loadout dashboard`) — FastAPI over the twin (read APIs +
   scan trigger), background Orchestrator running detection layers off-thread, and a `/ws`
   WebSocket bridging the EventBus to the browser. Web stack is the `[dashboard]` extra.
+- Batch 10: dashboard frontend — dependency-free vanilla-JS SPA (no build step) with
+  Overview/Components/Models/Config/Activity views, live WebSocket updates, a Rescan
+  button and per-task progress chips. Verified live: assets serve, scan runs end-to-end.
 - (subsequent batches appended as delivered)
 
 ## Open questions / future

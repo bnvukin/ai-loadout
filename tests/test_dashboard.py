@@ -76,6 +76,16 @@ def test_api_index_serves_something():
     assert "Loadout" in resp.text
 
 
+def test_static_spa_bundle_is_served():
+    client = TestClient(create_app(_store()))
+    # The real SPA shell (not the fallback) is served at /.
+    assert "Overview" in client.get("/").text
+    for path in ("/static/app.js", "/static/style.css"):
+        r = client.get(path)
+        assert r.status_code == 200
+        assert len(r.text) > 100
+
+
 # -- live stream ------------------------------------------------------------------------
 def test_ws_streams_published_events():
     store = StateStore(autosave=False)

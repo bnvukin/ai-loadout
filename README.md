@@ -152,7 +152,7 @@ works, not the vision.
 | Layer 3 — AI runtime detection (`loadout runtimes`) | ✅ done (install via orchestrator) |
 | Layers 10 & 13 — health check + AI doctor (`loadout health` / `loadout doctor`) | ✅ done |
 | Config Center — discover/read configs + env + PATH (`loadout config`) | ✅ done (edit gated) |
-| Live dashboard — backend API + WebSocket + orchestrator (`loadout dashboard`) | ✅ done (UI next) |
+| Live dashboard — API + WebSocket + orchestrator + SPA UI (`loadout dashboard`) | ✅ done |
 | Everything else | ⏳ roadmap |
 
 ## Safety & trust

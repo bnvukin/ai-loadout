@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Loadout - AI Workstation Dashboard</title>
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="logo">L</div>
+        <div>
+          <h1>Loadout</h1>
+          <small>AI workstation</small>
+        </div>
+      </div>
+      <div class="nav-item active" data-view="overview"><span class="dot"></span> Overview</div>
+      <div class="nav-item" data-view="components"><span class="dot"></span> Components</div>
+      <div class="nav-item" data-view="models"><span class="dot"></span> Models</div>
+      <div class="nav-item" data-view="config"><span class="dot"></span> Config Center</div>
+      <div class="nav-item" data-view="activity"><span class="dot"></span> Activity</div>
+      <div class="spacer"></div>
+      <div class="conn" id="conn"><span class="dot"></span> <span id="conn-label">connecting...</span></div>
+      <div class="foot" id="foot">Loadout</div>
+    </aside>
+
+    <main class="main">
+      <div class="topbar">
+        <div>
+          <h2 id="view-title">Overview</h2>
+          <div class="sub" id="view-sub">Live view of your machine's digital twin.</div>
+        </div>
+        <div style="display:flex; gap:10px; align-items:center;">
+          <div class="progress" id="progress"></div>
+          <button class="btn" id="rescan">Rescan</button>
+        </div>
+      </div>
+
+      <section id="view-overview"></section>
+      <section id="view-components" class="hidden"></section>
+      <section id="view-models" class="hidden"></section>
+      <section id="view-config" class="hidden"></section>
+      <section id="view-activity" class="hidden"></section>
+    </main>
+  </div>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>
