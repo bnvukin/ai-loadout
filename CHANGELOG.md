@@ -67,3 +67,5 @@ All notable changes to Loadout are documented here. The format is based on
 - Continuous integration: GitHub Actions workflow running `ruff check` + `ruff format
   --check` and the pytest suite across Windows/macOS/Linux on Python 3.9 and 3.12, plus a
   CLI smoke test (`version`/`scan`/`plan`).
+- Docs: README "Commands available today" reference table and accurate profile names; the
+  build checklist reflects the shipped CLI surface.

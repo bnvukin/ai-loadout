@@ -61,8 +61,8 @@ state. That is what turns "a bunch of scripts" into a platform you can extend.
 - **Safety first** — official download sources only, checksum verification, three trust
   levels (🟢 Safe / 🟡 Advanced / 🔴 Expert), and "what changes / why / how to undo /
   restart needed" before any risky edit.
-- **Profiles & Capabilities** — pick *AI Developer* or *Agent Developer* instead of
-  ticking 50 tools; each expands transparently into the underlying components.
+- **Profiles & Capabilities** — pick *ml-engineer* or *agentic-coder* instead of ticking
+  50 tools; each expands transparently into the underlying components (`loadout plan`).
 
 ## Quick start
 
@@ -102,6 +102,22 @@ action and support a preview flag:
 ./bootstrap.sh --dry-run       # preview
 ./bootstrap.sh --dashboard     # install + open the dashboard
 ```
+
+### Commands available today
+
+All of these are implemented and covered by the cross-platform test matrix. Everything is
+read-only / dry-run — nothing on your machine changes.
+
+| Command | What it does |
+|---------|--------------|
+| `loadout scan` | Detect machine + toolchain + AI runtimes into the digital twin |
+| `loadout deps` | Developer toolchain with install/upgrade/skip decisions |
+| `loadout runtimes` | Ollama / VS Code / Continue / agent CLIs + local models |
+| `loadout models` | Hardware-aware model comparison table with tok/s + RAM estimates |
+| `loadout health` / `loadout doctor` | Actionable issues, then plain-language explanations |
+| `loadout config [--show KEY \| --env \| --path]` | Config Center: files (redacted), env vars, PATH |
+| `loadout plan --list` / `loadout plan --profile <key>` | Dry-run install plan for a profile |
+| `loadout dashboard` | Live web dashboard at `http://localhost:8421` |
 
 ## The 20 layers
 

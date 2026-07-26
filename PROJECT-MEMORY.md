@@ -49,6 +49,16 @@ time without re-deriving context. Newest entries at the top.
   `plan --profile ml-engineer` correctly skipped present tools and emitted winget/pip/ollama steps.
 - Batch 12: CI — GitHub Actions (`.github/workflows/ci.yml`): ruff lint/format gate + pytest
   matrix (windows/macos/linux x py3.9/py3.12) + CLI smoke test. README CI badge added.
+  First run verified green (all 7 jobs) via `gh run watch`.
+- Batch 13: docs polish — README "Commands available today" table + accurate profile names,
+  CLI checklist marked complete. 88 tests green locally and in CI.
+
+## Delivery snapshot (end of session 1)
+Shipped, tested (88 tests), and CI-green across 3 OSes: Layers 1-4, 10, 13, 18, the Config
+Center, and the full live dashboard (backend + SPA), plus profiles/planner and bootstrap
+scripts. Everything is read-only / dry-run; actual mutating installs (via the orchestrator)
+are the next major piece, followed by Layers 5-9, 11-12, 14-17, 19-20.
+
 - (subsequent batches appended as delivered)
 
 ## Open questions / future

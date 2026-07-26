@@ -5,7 +5,8 @@ Legend: `[x]` done · `[~]` partial/functional-but-not-complete · `[ ]` not sta
 ## Foundation
 - [x] Repo scaffolding (license, packaging, docs, hygiene)
 - [x] Core state engine (digital twin) + events + lifecycle
-- [~] CLI entry point (`loadout` / `ai-loadout`) — `version`/`info` done; more per layer
+- [x] CLI entry point (`loadout` / `ai-loadout`) — version/info/scan/deps/runtimes/models/
+  health/doctor/config/plan/dashboard all live (mutating install actions still pending)
 
 ## Layers
 - [x] 1. Machine validation (OS/CPU/RAM/GPU/VRAM/disk/internet/admin/virtualization)
