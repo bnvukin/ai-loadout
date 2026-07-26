@@ -1,0 +1,10 @@
+processor	: 0
+vendor_id	: GenuineIntel
+cpu family	: 6
+model		: 165
+model name	: Intel(R) Core(TM) i7-10750H CPU @ 2.60GHz
+stepping	: 2
+flags		: fpu vme de pse tsc msr pae mce cx8 apic sep vmx sse sse2
+
+processor	: 1
+model name	: Intel(R) Core(TM) i7-10750H CPU @ 2.60GHz

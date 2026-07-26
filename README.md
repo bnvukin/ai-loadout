@@ -144,10 +144,11 @@ works, not the vision.
 
 | Area | Status |
 |------|--------|
-| Repo scaffolding, packaging, license | 🚧 in progress |
-| Core state engine (digital twin) | ⏳ planned next |
-| Layer 1 — machine detection | ⏳ |
-| Layer 4 — model recommendation | ⏳ |
+| Repo scaffolding, packaging, license | ✅ done |
+| Core state engine (digital twin) | ✅ done |
+| Layer 1 — machine detection (`loadout scan`) | ✅ done |
+| Layer 4 — model recommendation | 🚧 next |
+| Layer 2 — dependency manager | ⏳ |
 | Live dashboard | ⏳ |
 | Everything else | ⏳ roadmap |
 

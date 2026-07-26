@@ -14,5 +14,10 @@ All notable changes to Loadout are documented here. The format is based on
   health aggregation, and a bounded pub/sub `EventBus` for live updates.
 - CLI entry point (`loadout` / `ai-loadout`) with `version` and `info` commands and a
   discoverable list of upcoming subcommands.
-- Test suite (17 tests) covering events, lifecycle, state persistence, and the CLI; ruff
+- Test suite covering events, lifecycle, state persistence, and the CLI; ruff
   lint/format configured and passing.
+- Layer 1 (machine validation): cross-platform detection of OS, CPU, RAM, GPU/VRAM
+  (nvidia-smi / pynvml / OS fallbacks), disk, internet, admin rights and virtualization.
+  Pure output parsers are unit-tested against captured fixtures; `loadout scan` writes the
+  result into the digital twin and renders health cards.
+- Safe subprocess helper (`util.proc`) used by detection/health probes.

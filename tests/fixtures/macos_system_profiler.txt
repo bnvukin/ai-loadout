@@ -1,0 +1,18 @@
+Graphics/Displays:
+
+    Apple M3 Pro:
+
+      Chipset Model: Apple M3 Pro
+      Type: GPU
+      Bus: Built-In
+      Total Number of Cores: 18
+      Vendor: Apple (0x106b)
+      Metal Support: Metal 3
+
+    AMD Radeon Pro 5500M:
+
+      Chipset Model: AMD Radeon Pro 5500M
+      Type: GPU
+      Bus: PCIe
+      VRAM (Total): 8192 MB
+      Vendor: AMD (0x1002)

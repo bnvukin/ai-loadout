@@ -1,0 +1,2 @@
+NVIDIA GeForce RTX 4070
+Intel(R) UHD Graphics 770

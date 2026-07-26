@@ -8,7 +8,7 @@ Legend: `[x]` done · `[~]` partial/functional-but-not-complete · `[ ]` not sta
 - [~] CLI entry point (`loadout` / `ai-loadout`) — `version`/`info` done; more per layer
 
 ## Layers
-- [ ] 1. Machine validation (OS/CPU/RAM/GPU/VRAM/disk/internet/admin/virtualization)
+- [x] 1. Machine validation (OS/CPU/RAM/GPU/VRAM/disk/internet/admin/virtualization)
 - [ ] 2. Dependency manager (detect + decision tree)
 - [ ] 3. AI runtime install (Ollama, Open WebUI, Continue, CLIs)
 - [ ] 4. Model recommendation (catalog + hardware-aware table + estimates)

@@ -35,6 +35,28 @@ def cmd_version(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_scan(args: argparse.Namespace) -> int:
+    """Layer 1 - read-only machine scan; writes the result into the digital twin."""
+
+    from .core.state import load_state
+    from .detect.system import scan, summarize
+
+    store = load_state()
+    hw = scan(store)
+    if args.json:
+        _print_json(store.snapshot())
+        return 0
+    print(BANNER)
+    for line in summarize(hw):
+        print(line)
+    if hw.warnings:
+        print("\nNotes:")
+        for warning in hw.warnings:
+            print(f"  ! {warning}")
+    print("\nSaved to the digital twin.  Next:  loadout plan   ·   loadout dashboard")
+    return 0
+
+
 def cmd_info(args: argparse.Namespace) -> int:
     """Show the last persisted digital-twin snapshot without rescanning."""
 
@@ -90,9 +112,11 @@ def build_parser() -> argparse.ArgumentParser:
     p_info = sub.add_parser("info", help="show the last persisted machine snapshot")
     p_info.set_defaults(func=cmd_info)
 
+    p_scan = sub.add_parser("scan", help="detect this machine (Layer 1, read-only)")
+    p_scan.set_defaults(func=cmd_scan)
+
     # Registered fully in later batches; discoverable now so `--help` lists them.
     for name, hint in (
-        ("scan", "Machine detection (Layer 1) lands in the detection module."),
         ("plan", "Installation planning lands with profiles/capabilities."),
         ("health", "Health checks land with the health module."),
         ("models", "Model recommendations land with the models module."),
