@@ -147,8 +147,8 @@ works, not the vision.
 | Repo scaffolding, packaging, license | ✅ done |
 | Core state engine (digital twin) | ✅ done |
 | Layer 1 — machine detection (`loadout scan`) | ✅ done |
-| Layer 4 — model recommendation | 🚧 next |
-| Layer 2 — dependency manager | ⏳ |
+| Layer 4 — model recommendation (`loadout models`) | ✅ done |
+| Layer 2 — dependency manager | 🚧 next |
 | Live dashboard | ⏳ |
 | Everything else | ⏳ roadmap |
 

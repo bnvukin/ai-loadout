@@ -21,3 +21,8 @@ All notable changes to Loadout are documented here. The format is based on
   Pure output parsers are unit-tested against captured fixtures; `loadout scan` writes the
   result into the digital twin and renders health cards.
 - Safe subprocess helper (`util.proc`) used by detection/health probes.
+- Layer 4 (model recommendation): a curated model catalog (schema-validated) plus a
+  hardware-aware engine that estimates tokens/sec, memory, load time and context per
+  model, ranks the catalog for the detected machine (fits / tight / too_big), assigns
+  "Best Overall / Fastest / Best Coding" labels, and explains the top pick. `loadout
+  models` renders the comparison table.

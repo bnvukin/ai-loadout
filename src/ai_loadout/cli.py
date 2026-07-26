@@ -57,6 +57,45 @@ def cmd_scan(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_models(args: argparse.Namespace) -> int:
+    """Layer 4 - hardware-aware model recommendations as a comparison table."""
+
+    from .core.state import load_state
+    from .models.recommend import recommend_for_store, stars, why
+
+    store = load_state()
+    recs = recommend_for_store(store)
+    if args.json:
+        _print_json(
+            {
+                "hardware": store.hardware.to_dict() if store.hardware else None,
+                "recommendations": [r.to_dict() for r in recs],
+            }
+        )
+        return 0
+
+    print(BANNER)
+    header = (
+        f"{'Model':<22} {'Best for':<22} {'Code':<5} {'Reason':<6} "
+        f"{'Speed':<6} {'RAM':>5} {'tok/s':>6}  {'Fit':<8} Label"
+    )
+    print(header)
+    print("-" * len(header))
+    for r in recs:
+        ram = f"{int(r.spec.min_ram_gb)}G"
+        print(
+            f"{r.spec.name:<22.22} {r.spec.best_for:<22.22} {stars(r.spec.coding):<5} "
+            f"{stars(r.spec.reasoning):<6} {stars(r.effective_speed):<6} {ram:>5} "
+            f"{r.tokens_per_sec:>6}  {r.fit:<8} {r.labels[0] if r.labels else ''}"
+        )
+    best = next((r for r in recs if r.fit != "too_big"), None)
+    if best and store.hardware:
+        print("\nWhy this pick:")
+        print("  " + why(store.hardware, best))
+    print("\n(Ratings: */ ..... out of 5. 'Fit' is for THIS machine's RAM/VRAM.)")
+    return 0
+
+
 def cmd_info(args: argparse.Namespace) -> int:
     """Show the last persisted digital-twin snapshot without rescanning."""
 
@@ -115,11 +154,13 @@ def build_parser() -> argparse.ArgumentParser:
     p_scan = sub.add_parser("scan", help="detect this machine (Layer 1, read-only)")
     p_scan.set_defaults(func=cmd_scan)
 
+    p_models = sub.add_parser("models", help="hardware-aware model recommendations (Layer 4)")
+    p_models.set_defaults(func=cmd_models)
+
     # Registered fully in later batches; discoverable now so `--help` lists them.
     for name, hint in (
         ("plan", "Installation planning lands with profiles/capabilities."),
         ("health", "Health checks land with the health module."),
-        ("models", "Model recommendations land with the models module."),
         ("dashboard", "The live dashboard lands with the dashboard module."),
     ):
         sp = sub.add_parser(name, help=f"[coming soon] {name}")

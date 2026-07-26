@@ -11,7 +11,7 @@ Legend: `[x]` done · `[~]` partial/functional-but-not-complete · `[ ]` not sta
 - [x] 1. Machine validation (OS/CPU/RAM/GPU/VRAM/disk/internet/admin/virtualization)
 - [ ] 2. Dependency manager (detect + decision tree)
 - [ ] 3. AI runtime install (Ollama, Open WebUI, Continue, CLIs)
-- [ ] 4. Model recommendation (catalog + hardware-aware table + estimates)
+- [x] 4. Model recommendation (catalog + hardware-aware table + estimates)
 - [ ] 5. Download manager (resume/retry/verify)
 - [ ] 6. VS Code configuration (extensions + settings)
 - [ ] 7. Continue configuration (auto-generate)
