@@ -71,6 +71,32 @@ def inspect_env(names: tuple[str, ...] = KEY_ENV_VARS, environ: dict | None = No
     return out
 
 
+def inspect_all_env(environ: dict | None = None) -> list[dict]:
+    """Report *every* environment variable (sorted), redacting anything secret.
+
+    The curated :func:`inspect_env` answers "are my AI vars set?"; this answers the user's
+    ask to just see everything so they can judge relevance themselves. Secret-looking names
+    are masked so the list is safe to screenshot.
+    """
+
+    env = os.environ if environ is None else environ
+    known = set(KEY_ENV_VARS)
+    out: list[dict] = []
+    for name in sorted(env.keys(), key=str.lower):
+        raw = env.get(name, "")
+        secret = looks_secret(name)
+        out.append(
+            {
+                "name": name,
+                "present": raw != "",
+                "secret": secret,
+                "value": mask(raw) if (secret and raw) else raw,
+                "known": name in known,
+            }
+        )
+    return out
+
+
 def path_entries(environ: dict | None = None) -> list[dict]:
     """Split PATH into entries and flag missing directories + duplicates."""
 

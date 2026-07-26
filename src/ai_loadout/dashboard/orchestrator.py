@@ -27,6 +27,11 @@ class Orchestrator:
         self._lock = threading.RLock()
         self._thread: threading.Thread | None = None
         self._status: dict[str, dict] = {name: {"status": "idle"} for name in DEFAULT_TASKS}
+        # Phase 2: mutating actions (install/upgrade/pull/repair) run on their own worker
+        # so a long install can't block a scan and vice-versa.
+        self._action_thread: threading.Thread | None = None
+        self._current_action: str | None = None
+        self._action_log: dict[str, dict] = {}
 
     # -- task table -------------------------------------------------------------------
     def _fn(self, name: str):
@@ -63,7 +68,44 @@ class Orchestrator:
             return {
                 "running": self.is_running(),
                 "tasks": {name: dict(state) for name, state in self._status.items()},
+                "action_running": self.action_running(),
+                "current_action": self._current_action,
             }
+
+    # -- background actions (Phase 2) -------------------------------------------------
+    def action_running(self) -> bool:
+        return self._action_thread is not None and self._action_thread.is_alive()
+
+    def launch_action(self, action_id: str, fn) -> dict:
+        """Run a mutating action in the background (one at a time). Returns immediately.
+
+        ``fn`` is a zero-arg callable (already bound to the store) that performs the work
+        and publishes its own progress/state events; the browser follows over the socket.
+        """
+
+        with self._lock:
+            if self.action_running():
+                return {"started": False, "busy": True, "current_action": self._current_action}
+            self._current_action = action_id
+
+            def _wrap() -> None:
+                try:
+                    result = fn()
+                    outcome = {"status": "done", "result": result, "finished": time.time()}
+                except Exception as exc:  # never let a worker crash take down the app
+                    self.store.bus.error(f"Action failed: {exc}", source="action", target=action_id)
+                    outcome = {"status": "error", "error": str(exc), "finished": time.time()}
+                with self._lock:
+                    self._action_log[action_id] = outcome
+                    self._current_action = None
+
+            self._action_thread = threading.Thread(target=_wrap, name="loadout-action", daemon=True)
+            self._action_thread.start()
+        return {"started": True, "action": action_id}
+
+    def last_action(self, action_id: str) -> dict | None:
+        with self._lock:
+            return self._action_log.get(action_id)
 
     # -- execution --------------------------------------------------------------------
     def start(self, names: list[str] | None = None) -> dict:
