@@ -40,7 +40,8 @@ Legend: `[x]` done · `[~]` partial/functional-but-not-complete · `[ ]` not sta
 - [ ] Connections page (deferred credentials/logins)
 
 ## Quality gates
-- [ ] Unit tests (detection parsing via fixtures, recommendation, planner, config discovery)
-- [ ] Dashboard smoke test (FastAPI TestClient)
-- [ ] CI (lint + test matrix: windows/macos/linux)
-- [ ] Manual end-to-end test notes / sandbox verification
+- [x] Unit tests (detection parsing via fixtures, recommendation, planner, config discovery)
+- [x] Dashboard smoke test (FastAPI TestClient + live `/ws` round-trip)
+- [x] CI (lint + test matrix: windows/macos/linux, py3.9 + py3.12)
+- [~] Manual end-to-end test notes / sandbox verification — read-only paths verified live;
+  mutating installs still need a disposable-VM run before recommending them

@@ -47,6 +47,8 @@ time without re-deriving context. Newest entries at the top.
   against the twin into a dry-run install plan (real package-manager commands, hardware-aware
   model pick), plus `bootstrap.ps1`/`bootstrap.sh` one-command entry scripts. Verified live:
   `plan --profile ml-engineer` correctly skipped present tools and emitted winget/pip/ollama steps.
+- Batch 12: CI — GitHub Actions (`.github/workflows/ci.yml`): ruff lint/format gate + pytest
+  matrix (windows/macos/linux x py3.9/py3.12) + CLI smoke test. README CI badge added.
 - (subsequent batches appended as delivered)
 
 ## Open questions / future

@@ -4,6 +4,7 @@
 
 **One command to turn any Windows, macOS, or Linux machine into a production-ready AI development workstation.**
 
+[![CI](https://github.com/bnvukin/ai-loadout/actions/workflows/ci.yml/badge.svg)](https://github.com/bnvukin/ai-loadout/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
 [![Python 3.9+](https://img.shields.io/badge/python-3.9%2B-blue.svg)](https://www.python.org/)
 [![Status: Alpha](https://img.shields.io/badge/status-alpha-orange.svg)](#project-status)

@@ -64,3 +64,6 @@ All notable changes to Loadout are documented here. The format is based on
 - Bootstrap scripts (`bootstrap.ps1`, `bootstrap.sh`): the "one command" from a bare
   machine — ensure Python (winget/Homebrew/apt), install Loadout, run the first scan.
   Official sources only, every action printed, `-DryRun`/`--dry-run` preview.
+- Continuous integration: GitHub Actions workflow running `ruff check` + `ruff format
+  --check` and the pytest suite across Windows/macOS/Linux on Python 3.9 and 3.12, plus a
+  CLI smoke test (`version`/`scan`/`plan`).
