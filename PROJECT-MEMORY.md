@@ -120,6 +120,21 @@ env var values appearing trimmed with no easy copy.
   before detection so pnpm/uv show green after winget install without dashboard restart.
 - 133 tests green locally after changes.
 
+### Session 5 — 2026-07-26 (PATH refresh hardening + copy everywhere)
+- **pnpm/uv still grey (true root cause):** winget installs to fully-expanded dirs under
+  ``HKCU\\Environment\\Path`` (e.g. ``...\\WinGet\\Packages\\pnpm.pnpm_...``). A long-running
+  dashboard keeps a *stale* process PATH (often with unexpanded ``%USERPROFILE%\\WindowsApps``
+  only). ``shutil.which`` does not expand ``%VAR%`` inside PATH entries, so the first fix
+  (append registry to stale PATH) was insufficient when merge order/expansion was wrong.
+  Standalone python verification was misleading — fresh processes inherit an updated PATH.
+- **Fix:** rebuild PATH registry-first with per-entry ``expandvars``; call refresh in
+  ``detect_all``, ``detect_one``, ``rescan_component``, and ``proc.which`` (plus ``where.exe``
+  fallback). Verified against a live server started with a deliberately stale PATH: HTTP
+  rescan + full scan return pnpm/uv green.
+- **Copy UX:** command previews (install/update/pull), Why? panel, action log, config paths,
+  doc links — all reuse the env-var copy button + toast pattern.
+- 137 tests green locally.
+
 ## Open questions / future
 
 - Real end-to-end install test in a disposable VM/sandbox per OS before recommending

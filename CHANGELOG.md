@@ -107,3 +107,7 @@ All notable changes to Loadout are documented here. The format is based on
   no installed package; "already installed / no upgrade available" exits count as success.
 - **Stale PATH on Windows:** dependency/runtime detection refreshes PATH from the registry
   so tools installed while the dashboard is running (pnpm, uv, …) rescan green without restart.
+- **PATH refresh hardened:** registry-first rebuild with per-entry ``%VAR%`` expansion;
+  ``proc.which`` refreshes before lookup and falls back to ``where.exe`` on Windows.
+- **Copy buttons:** install/update confirm modals, Why? advice (commands + doc links), model
+  pull preview, action-log modal, and config editor paths all have one-click copy + toast.
