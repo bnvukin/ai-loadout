@@ -216,6 +216,17 @@ def create_app(store: StateStore | None = None, orchestrator: Orchestrator | Non
             ) from exc
 
     # -- live stream ------------------------------------------------------------------
+    async def _safe_send_json(websocket: WebSocket, payload: dict) -> bool:
+        """Send one JSON frame; return False if the socket is gone (don't kill the handler)."""
+
+        try:
+            await websocket.send_json(payload)
+            return True
+        except (WebSocketDisconnect, RuntimeError):
+            raise
+        except Exception:
+            return False
+
     @app.websocket("/ws")
     async def ws(websocket: WebSocket) -> None:
         await websocket.accept()
@@ -230,13 +241,17 @@ def create_app(store: StateStore | None = None, orchestrator: Orchestrator | Non
 
         unsubscribe = store.bus.subscribe(on_event)
         try:
+            # Rapid-fire history replay can drop the connection before any frame is
+            # delivered; yield between sends so the transport can flush each message.
             for past in store.bus.history():
-                await websocket.send_json(past)
+                if not await _safe_send_json(websocket, past.to_dict()):
+                    return
+                await asyncio.sleep(0)
             while True:
-                await websocket.send_json(await queue.get())
+                payload = await queue.get()
+                if not await _safe_send_json(websocket, payload):
+                    break
         except (WebSocketDisconnect, RuntimeError):
-            pass
-        except Exception:
             pass
         finally:
             unsubscribe()

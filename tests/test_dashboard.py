@@ -98,6 +98,20 @@ def test_ws_streams_published_events():
         assert data["message"] == "hello-dashboard"
 
 
+def test_ws_replays_buffered_history_without_dropping():
+    store = StateStore(autosave=False)
+    for i in range(60):
+        store.bus.info(f"hist-{i}")
+    client = TestClient(create_app(store))
+    with client.websocket_connect("/ws") as ws:
+        received = 0
+        while received < 60:
+            data = ws.receive_json()
+            received += 1
+            assert "message" in data
+        assert received == 60
+
+
 # -- Phase 2: background actions on the orchestrator ------------------------------------
 def test_orchestrator_launch_action_runs_and_records():
     orch = Orchestrator(_store())
