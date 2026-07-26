@@ -13,13 +13,24 @@ import os
 import sys
 
 
+def _is_windows() -> bool:
+    """Windows check, indirected so tests can flip it without mutating global ``os``.
+
+    Patching ``os.name`` globally corrupts ``shutil.which`` / ``pathlib`` for every
+    other test in the process (and crashes pytest on 3.9), so detection code routes
+    its platform check through here instead.
+    """
+
+    return os.name == "nt" or sys.platform == "win32"
+
+
 def refresh_process_path(environ: dict | None = None) -> bool:
     """Rebuild ``PATH`` from the registry (expanded) plus process-only extras.
 
     Returns ``True`` when ``PATH`` changed. No-op on non-Windows platforms.
     """
 
-    if sys.platform != "win32" and os.name != "nt":
+    if not _is_windows():
         return False
 
     env = os.environ if environ is None else environ
@@ -32,12 +43,13 @@ def refresh_process_path(environ: dict | None = None) -> bool:
 
 
 def _windows_path_from_registry(env: dict) -> str:
-    import winreg
-
+    # Root hives are addressed by name so this function never imports ``winreg``
+    # itself -- only ``_read_reg_path`` does, and tests mock that. That keeps the
+    # module importable and this path exercisable on non-Windows CI.
     machine = _read_reg_path(
-        winreg.HKEY_LOCAL_MACHINE, r"SYSTEM\CurrentControlSet\Control\Session Manager\Environment"
+        "HKLM", r"SYSTEM\CurrentControlSet\Control\Session Manager\Environment"
     )
-    user = _read_reg_path(winreg.HKEY_CURRENT_USER, "Environment")
+    user = _read_reg_path("HKCU", "Environment")
     raw = os.pathsep.join(part for part in (machine, user) if part)
     return _expand_path_string(raw, env)
 
@@ -63,19 +75,26 @@ def _expand_path_string(raw: str, env: dict) -> str:
     return os.pathsep.join(parts)
 
 
-def _read_reg_path(root, subkey: str) -> str:
+def _read_reg_path(root: str, subkey: str) -> str:
     import winreg
 
+    hives = {"HKLM": winreg.HKEY_LOCAL_MACHINE, "HKCU": winreg.HKEY_CURRENT_USER}
     try:
-        with winreg.OpenKey(root, subkey) as key:
+        with winreg.OpenKey(hives[root], subkey) as key:
             value, _ = winreg.QueryValueEx(key, "Path")
     except OSError:
         return ""
     return value if isinstance(value, str) else ""
 
 
-def _merge_path(primary: str, secondary: str) -> str:
-    """Merge PATH strings; ``primary`` entries win order, ``secondary`` adds missing dirs."""
+def _merge_path(primary: str, secondary: str, *, case_insensitive: bool | None = None) -> str:
+    """Merge PATH strings; ``primary`` entries win order, ``secondary`` adds missing dirs.
+
+    Dedup is case-insensitive on Windows by default; callers/tests can force it.
+    """
+
+    if case_insensitive is None:
+        case_insensitive = _is_windows()
 
     parts: list[str] = []
     seen: set[str] = set()
@@ -85,7 +104,7 @@ def _merge_path(primary: str, secondary: str) -> str:
             entry = entry.strip()
             if not entry:
                 continue
-            key = entry.lower() if os.name == "nt" else entry
+            key = entry.lower() if case_insensitive else entry
             if key in seen:
                 continue
             seen.add(key)

@@ -16,6 +16,12 @@ import subprocess
 from dataclasses import dataclass
 
 
+def _is_windows() -> bool:
+    """Indirected so tests can flip it without mutating the global ``os.name``."""
+
+    return os.name == "nt"
+
+
 @dataclass
 class RunResult:
     ok: bool
@@ -39,14 +45,14 @@ def which(name: str) -> str | None:
     misses App Execution Aliases / ``.cmd`` shims.
     """
 
-    if os.name == "nt":
+    if _is_windows():
         from .path_env import refresh_process_path
 
         refresh_process_path()
     hit = shutil.which(name)
     if hit:
         return hit
-    if os.name == "nt":
+    if _is_windows():
         result = run(["where.exe", name], timeout=8)
         if result.found and result.out.strip():
             line = result.out.strip().splitlines()[0].strip()
