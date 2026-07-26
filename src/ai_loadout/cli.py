@@ -174,6 +174,67 @@ def cmd_models(args: argparse.Namespace) -> int:
     return 0
 
 
+_SEVERITY_SYMBOL = {"error": "[X]", "warning": "[!]", "info": "[i]"}
+
+
+def cmd_health(args: argparse.Namespace) -> int:
+    """Layer 10 - run a health check and list actionable issues."""
+
+    from .core.state import load_state
+    from .health.checker import health_from_scratch
+
+    store = load_state()
+    report = health_from_scratch(store)
+    if args.json:
+        _print_json(report.to_dict())
+        return 0
+    print(BANNER)
+    print(f"Overall health: {report.percent}%  ({report.status})")
+    counts = report.counts
+    print(
+        f"Components: {counts.get('green', 0)} healthy, {counts.get('yellow', 0)} attention, "
+        f"{counts.get('red', 0)} broken, {counts.get('gray', 0)} not installed"
+    )
+    if not report.issues:
+        print("\nEverything looks good. No issues found.")
+        return 0
+    print(f"\n{len(report.issues)} issue(s):")
+    for issue in report.issues:
+        symbol = _SEVERITY_SYMBOL.get(issue.severity, "[?]")
+        fixable = "  (fixable)" if issue.fixable else ""
+        print(f"  {symbol} {issue.title}{fixable}")
+        print(f"       -> {issue.fix}")
+    print("\nRun 'loadout doctor' for full explanations.")
+    return 0
+
+
+def cmd_doctor(args: argparse.Namespace) -> int:
+    """Layer 13 - explain each issue in plain language (what/why/fix/restart)."""
+
+    from .core.state import load_state
+    from .health.checker import health_from_scratch
+
+    store = load_state()
+    report = health_from_scratch(store)
+    if args.json:
+        _print_json(report.to_dict())
+        return 0
+    print(BANNER)
+    if not report.issues:
+        print("AI Doctor: no problems detected. Your workstation looks healthy.")
+        return 0
+    for issue in report.issues:
+        symbol = _SEVERITY_SYMBOL.get(issue.severity, "[?]")
+        print(f"\n{symbol} {issue.title}")
+        print(f"   What:    {issue.explanation}")
+        print(f"   Fix:     {issue.fix}")
+        if issue.why:
+            print(f"   Why:     {issue.why}")
+        if issue.restart and issue.restart != "none":
+            print(f"   Restart: {issue.restart}")
+    return 0
+
+
 def cmd_info(args: argparse.Namespace) -> int:
     """Show the last persisted digital-twin snapshot without rescanning."""
 
@@ -241,10 +302,15 @@ def build_parser() -> argparse.ArgumentParser:
     p_models = sub.add_parser("models", help="hardware-aware model recommendations (Layer 4)")
     p_models.set_defaults(func=cmd_models)
 
+    p_health = sub.add_parser("health", help="run a health check (Layer 10)")
+    p_health.set_defaults(func=cmd_health)
+
+    p_doctor = sub.add_parser("doctor", help="explain issues in plain language (Layer 13)")
+    p_doctor.set_defaults(func=cmd_doctor)
+
     # Registered fully in later batches; discoverable now so `--help` lists them.
     for name, hint in (
         ("plan", "Installation planning lands with profiles/capabilities."),
-        ("health", "Health checks land with the health module."),
         ("dashboard", "The live dashboard lands with the dashboard module."),
     ):
         sp = sub.add_parser(name, help=f"[coming soon] {name}")

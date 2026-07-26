@@ -150,8 +150,8 @@ works, not the vision.
 | Layer 4 — model recommendation (`loadout models`) | ✅ done |
 | Layer 2 — dependency manager (`loadout deps`) | ✅ done |
 | Layer 3 — AI runtime detection (`loadout runtimes`) | ✅ done (install via orchestrator) |
-| Health check / doctor | 🚧 next |
-| Config Center | ⏳ |
+| Layers 10 & 13 — health check + AI doctor (`loadout health` / `loadout doctor`) | ✅ done |
+| Config Center | 🚧 next |
 | Live dashboard | ⏳ |
 | Everything else | ⏳ roadmap |
 

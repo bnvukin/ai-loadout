@@ -27,6 +27,13 @@ time without re-deriving context. Newest entries at the top.
   VS Code, winget, Ollama present; Docker absent (a good real test case for detection).
 - Confirmed remote `github.com/bnvukin/ai-loadout` (public, empty).
 - Batch 1: repo scaffolding — license, packaging, docs, hygiene.
+- Batch 2: core state engine (digital twin) + event bus + lifecycle + CLI skeleton.
+- Batch 3: Layer 1 machine validation (`loadout scan`) with pure parsers + fixtures.
+- Batch 4: Layer 4 model catalog + hardware-aware recommendation (`loadout models`).
+- Batch 5: Layer 2 dependency manager (`loadout deps`) — detect + version decision tree.
+- Batch 6: Layer 3 AI runtime/editor detection (`loadout runtimes`) + local model discovery.
+- Batch 7: Layers 10 & 13 health check + AI doctor (`loadout health` / `loadout doctor`) —
+  twin + live probes → actionable issues with plain-language explain/fix/why/restart.
 - (subsequent batches appended as delivered)
 
 ## Open questions / future

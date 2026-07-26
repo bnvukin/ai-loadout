@@ -17,10 +17,10 @@ Legend: `[x]` done · `[~]` partial/functional-but-not-complete · `[ ]` not sta
 - [ ] 7. Continue configuration (auto-generate)
 - [ ] 8. Agent/MCP configuration
 - [ ] 9. Project templates
-- [ ] 10. Health check
+- [x] 10. Health check (`loadout health` — twin + live probes → actionable issues)
 - [ ] 11. Auto repair
 - [ ] 12. Benchmark
-- [ ] 13. AI doctor
+- [x] 13. AI doctor (`loadout doctor` — plain-language explain/fix/why/restart)
 - [ ] 14. Security (checksums, official URLs)
 - [ ] 15. Logging (install/benchmark logs, diagnostics.zip)
 - [ ] 16. Update manager

@@ -36,3 +36,7 @@ All notable changes to Loadout are documented here. The format is based on
   CLIs (Claude Code, Codex, Gemini, OpenCode) via CLI/port/config-dir signals. `loadout
   scan` now reports runtimes; `loadout runtimes` gives a focused view and lists local
   models. (Install actions land with the orchestrator.)
+- Layers 10 & 13 (health check + AI doctor): `loadout health` inspects the twin plus live
+  probes (Ollama server, Docker daemon, disk, internet, GPU, out-of-date/missing tools)
+  and lists actionable issues; `loadout doctor` explains each in plain language with a
+  fix, why-it-matters, and restart scope. Explanations are data-driven and testable.
