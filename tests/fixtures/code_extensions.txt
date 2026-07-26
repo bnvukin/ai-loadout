@@ -1,0 +1,4 @@
+continue.continue@1.0.14
+ms-python.python@2026.6.0
+esbenp.prettier-vscode@11.0.0
+eamodio.gitlens@15.6.0

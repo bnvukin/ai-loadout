@@ -10,7 +10,7 @@ Legend: `[x]` done · `[~]` partial/functional-but-not-complete · `[ ]` not sta
 ## Layers
 - [x] 1. Machine validation (OS/CPU/RAM/GPU/VRAM/disk/internet/admin/virtualization)
 - [x] 2. Dependency manager (detect + decision tree)
-- [ ] 3. AI runtime install (Ollama, Open WebUI, Continue, CLIs)
+- [~] 3. AI runtime detect (Ollama/VS Code/Continue/CLIs) done; install via orchestrator
 - [x] 4. Model recommendation (catalog + hardware-aware table + estimates)
 - [ ] 5. Download manager (resume/retry/verify)
 - [ ] 6. VS Code configuration (extensions + settings)

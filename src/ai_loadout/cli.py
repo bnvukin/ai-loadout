@@ -52,16 +52,28 @@ def _render_deps(results: list) -> None:
         print(f"  {symbol} {r['name']:<26} {version:<12} {r['detail']}{opt}")
 
 
+def _render_runtimes(results: list) -> None:
+    print("\nAI runtimes:")
+    for r in results:
+        present = str(r["state"]) != "missing"
+        symbol = "[ ok    ]" if present else "[missing]"
+        version = r["version"] or ""
+        opt = "  (optional)" if r.get("optional") and not present else ""
+        print(f"  {symbol} {r['name']:<26} {version:<12} {r['detail']}{opt}")
+
+
 def cmd_scan(args: argparse.Namespace) -> int:
     """Layers 1-2 - read-only machine + toolchain scan; writes into the digital twin."""
 
     from .core.state import load_state
     from .deps.detect import detect_all
     from .detect.system import scan, summarize
+    from .runtimes.detect import detect_all as detect_runtimes
 
     store = load_state()
     hw = scan(store)
     dep_results = detect_all(store)
+    rt_results = detect_runtimes(store)
     if args.json:
         _print_json(store.snapshot())
         return 0
@@ -69,11 +81,36 @@ def cmd_scan(args: argparse.Namespace) -> int:
     for line in summarize(hw):
         print(line)
     _render_deps(dep_results)
+    _render_runtimes(rt_results)
     if hw.warnings:
         print("\nNotes:")
         for warning in hw.warnings:
             print(f"  ! {warning}")
-    print("\nSaved to the digital twin.  Next:  loadout models   ·   loadout dashboard")
+    print("\nSaved to the digital twin.  Next:  loadout models   |   loadout dashboard")
+    return 0
+
+
+def cmd_runtimes(args: argparse.Namespace) -> int:
+    """Layer 3 - detect installed AI runtimes, editors and agent CLIs."""
+
+    from .core.state import load_state
+    from .runtimes.detect import detect_all as detect_runtimes
+
+    store = load_state()
+    if store.hardware is None:
+        from .detect.system import scan
+
+        scan(store)
+    results = detect_runtimes(store)
+    if args.json:
+        _print_json({"runtimes": results, "models": [m.to_dict() for m in store.models()]})
+        return 0
+    _render_runtimes(results)
+    if store.models():
+        print("\nLocal models:")
+        for m in store.models():
+            size = f"{m.size_gb} GB" if m.size_gb else ""
+            print(f"  - {m.name:<28} {size}")
     return 0
 
 
@@ -197,6 +234,9 @@ def build_parser() -> argparse.ArgumentParser:
 
     p_deps = sub.add_parser("deps", help="detect the developer toolchain (Layer 2)")
     p_deps.set_defaults(func=cmd_deps)
+
+    p_runtimes = sub.add_parser("runtimes", help="detect AI runtimes & editors (Layer 3)")
+    p_runtimes.set_defaults(func=cmd_runtimes)
 
     p_models = sub.add_parser("models", help="hardware-aware model recommendations (Layer 4)")
     p_models.set_defaults(func=cmd_models)

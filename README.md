@@ -149,7 +149,9 @@ works, not the vision.
 | Layer 1 — machine detection (`loadout scan`) | ✅ done |
 | Layer 4 — model recommendation (`loadout models`) | ✅ done |
 | Layer 2 — dependency manager (`loadout deps`) | ✅ done |
-| Layer 3 — AI runtime detect/install | 🚧 next |
+| Layer 3 — AI runtime detection (`loadout runtimes`) | ✅ done (install via orchestrator) |
+| Health check / doctor | 🚧 next |
+| Config Center | ⏳ |
 | Live dashboard | ⏳ |
 | Everything else | ⏳ roadmap |
 

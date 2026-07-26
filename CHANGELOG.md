@@ -31,3 +31,8 @@ All notable changes to Loadout are documented here. The format is based on
   skip/upgrade/install decision per tool, package-manager awareness (winget/choco/brew/
   apt/...), and injectable probes for hermetic testing. `loadout scan` now also reports the
   toolchain; `loadout deps` gives a focused view.
+- Layer 3 (AI runtimes, detection): detects Ollama (+ local models via `ollama list`),
+  VS Code (+ version), Continue, Cursor, Open WebUI, LM Studio, AnythingLLM and the agent
+  CLIs (Claude Code, Codex, Gemini, OpenCode) via CLI/port/config-dir signals. `loadout
+  scan` now reports runtimes; `loadout runtimes` gives a focused view and lists local
+  models. (Install actions land with the orchestrator.)
