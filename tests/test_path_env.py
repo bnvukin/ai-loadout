@@ -1,8 +1,19 @@
 """Tests for Windows PATH refresh from the registry."""
 
 import os
+import sys
+
+import pytest
 
 from ai_loadout.util import path_env
+
+# The registry read and ``%VAR%`` expansion are genuinely Windows-only (posix
+# ``os.pathsep`` is ``:``, which also splits drive letters like ``C:\...``, and
+# ``os.path.expandvars`` only expands ``%VAR%`` on Windows). The Windows CI leg
+# exercises these; elsewhere ``refresh_process_path`` is a no-op anyway.
+windows_only = pytest.mark.skipif(
+    sys.platform != "win32", reason="exercises Windows-only registry PATH behavior"
+)
 
 
 def test_refresh_process_path_noop_on_non_windows(monkeypatch):
@@ -14,16 +25,18 @@ def test_refresh_process_path_noop_on_non_windows(monkeypatch):
     assert env["PATH"] == "/usr/bin"
 
 
-def test_merge_path_dedupes_case_insensitive_on_windows():
+def test_merge_path_dedupes_case_insensitive():
+    # Pure dedup logic -- separator-free segments so it holds on any os.pathsep.
     sep = os.pathsep
-    primary = sep.join([r"C:\Tools", r"A:\bin"])
-    secondary = sep.join([r"c:\tools", r"B:\new"])
+    primary = sep.join([r"\Tools", r"\bin"])
+    secondary = sep.join([r"\tools", r"\new"])
     merged = path_env._merge_path(primary, secondary, case_insensitive=True)
     entries = [e.lower() for e in merged.split(sep)]
-    assert entries.count(r"c:\tools") == 1
-    assert r"b:\new" in entries
+    assert entries.count(r"\tools") == 1
+    assert r"\new" in entries
 
 
+@windows_only
 def test_refresh_process_path_appends_registry_entries(monkeypatch):
     monkeypatch.setattr(path_env, "_is_windows", lambda: True)
 
@@ -44,6 +57,7 @@ def test_refresh_process_path_appends_registry_entries(monkeypatch):
     assert r"C:\Users\me\AppData\Local\pnpm" in parts
 
 
+@windows_only
 def test_refresh_finds_tools_after_stale_unexpanded_path(monkeypatch):
     monkeypatch.setattr(path_env, "_is_windows", lambda: True)
     winget_pnpm = (
