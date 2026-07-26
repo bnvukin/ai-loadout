@@ -10,6 +10,7 @@ Detection, dependency checks, and health probes all shell out to tools like
 
 from __future__ import annotations
 
+import os
 import shutil
 import subprocess
 from dataclasses import dataclass
@@ -31,9 +32,27 @@ class RunResult:
 
 
 def which(name: str) -> str | None:
-    """Absolute path to an executable on PATH, or ``None``."""
+    """Absolute path to an executable on PATH, or ``None``.
 
-    return shutil.which(name)
+    On Windows, refresh PATH from the registry first (long-running processes keep a
+    stale PATH after winget installs) and fall back to ``where.exe`` when ``which``
+    misses App Execution Aliases / ``.cmd`` shims.
+    """
+
+    if os.name == "nt":
+        from .path_env import refresh_process_path
+
+        refresh_process_path()
+    hit = shutil.which(name)
+    if hit:
+        return hit
+    if os.name == "nt":
+        result = run(["where.exe", name], timeout=8)
+        if result.found and result.out.strip():
+            line = result.out.strip().splitlines()[0].strip()
+            if line and not line.lower().startswith("info:"):
+                return line
+    return None
 
 
 def run(

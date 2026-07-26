@@ -117,7 +117,9 @@ def detect_one(
 
 def detect_all(store, which_fn=proc.which, run_fn=proc.run, home: Path | None = None) -> list[dict]:
     from ..deps.managers import available_managers
+    from ..util.path_env import refresh_process_path
 
+    refresh_process_path()
     family = store.hardware.os_family if store.hardware else "unknown"
     managers = available_managers(which_fn)
     store.bus.info("Detecting AI runtimes...", source="runtimes")

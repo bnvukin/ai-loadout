@@ -234,15 +234,26 @@ def rescan_component(store, key: str) -> dict | None:
     from ..deps import registry as deps_registry
     from ..runtimes import detect as rt_detect
     from ..runtimes import registry as rt_registry
+    from ..util.path_env import refresh_process_path
 
+    refresh_process_path()
     family = store.hardware.os_family if store.hardware else None
     dep = deps_registry.by_key(key)
     if dep is not None:
-        deps_detect.detect_one  # noqa: B018 - clarity
         res = deps_detect.detect_one(dep, family or "unknown")
         _upsert_from_dep(store, dep, res)
         comp = store.get_component(key)
-        return comp.to_dict() if comp else None
+        if comp:
+            store.bus.publish(
+                "info",
+                f"{comp.name} rescanned: {comp.health}",
+                source="loadout",
+                kind="state",
+                target=key,
+                health=str(comp.health),
+            )
+            return comp.to_dict()
+        return None
 
     runtime = rt_registry.by_key(key)
     if runtime is not None:
@@ -251,7 +262,17 @@ def rescan_component(store, key: str) -> dict | None:
         res = rt_detect.detect_one(runtime, available_managers())
         _upsert_from_runtime(store, runtime, res)
         comp = store.get_component(key)
-        return comp.to_dict() if comp else None
+        if comp:
+            store.bus.publish(
+                "info",
+                f"{comp.name} rescanned: {comp.health}",
+                source="loadout",
+                kind="state",
+                target=key,
+                health=str(comp.health),
+            )
+            return comp.to_dict()
+        return None
     return None
 
 

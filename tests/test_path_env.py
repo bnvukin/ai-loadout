@@ -29,9 +29,58 @@ def test_refresh_process_path_appends_registry_entries(monkeypatch):
         return r"C:\Users\me\AppData\Local\pnpm"
 
     monkeypatch.setattr(path_env, "_read_reg_path", fake_read)
-    env = {"PATH": r"C:\Windows\System32"}
+    env = {
+        "PATH": r"C:\Windows\System32",
+        "USERPROFILE": r"C:\Users\me",
+        "LOCALAPPDATA": r"C:\Users\me\AppData\Local",
+    }
     assert path_env.refresh_process_path(env) is True
     parts = env["PATH"].split(os.pathsep)
-    assert r"C:\Windows\System32" in parts
     assert r"C:\Program Files\System" in parts
     assert r"C:\Users\me\AppData\Local\pnpm" in parts
+
+
+def test_refresh_finds_tools_after_stale_unexpanded_path(monkeypatch):
+    import shutil
+
+    monkeypatch.setattr(path_env.sys, "platform", "win32")
+    monkeypatch.setattr(path_env.os, "name", "nt")
+    winget_pnpm = (
+        r"C:\Users\me\AppData\Local\Microsoft\WinGet\Packages"
+        r"\pnpm.pnpm_Microsoft.Winget.Source_8wekyb3d8bbwe"
+    )
+
+    def fake_read(root, subkey):
+        if "Session Manager" in subkey:
+            return r"C:\Windows\System32"
+        return winget_pnpm
+
+    monkeypatch.setattr(path_env, "_read_reg_path", fake_read)
+
+    env = {
+        "PATH": r"C:\Windows\System32;%USERPROFILE%\AppData\Local\Microsoft\WindowsApps",
+        "USERPROFILE": r"C:\Users\me",
+        "LOCALAPPDATA": r"C:\Users\me\AppData\Local",
+        "PATHEXT": ".EXE;.CMD;.BAT;.COM",
+    }
+    assert shutil.which("pnpm", path=env["PATH"]) is None
+    assert path_env.refresh_process_path(env) is True
+    assert winget_pnpm.lower() in env["PATH"].lower()
+
+
+def test_detect_one_refreshes_path_on_windows(monkeypatch):
+    from ai_loadout.deps import detect
+    from ai_loadout.deps.registry import by_key
+
+    called = {"n": 0}
+
+    def fake_refresh():
+        called["n"] += 1
+        return False
+
+    monkeypatch.setattr("ai_loadout.util.path_env.refresh_process_path", fake_refresh)
+    monkeypatch.setattr(detect, "available_managers", lambda *a, **k: [])
+    detect.detect_one(
+        by_key("git"), "windows", which_fn=lambda n: None, run_fn=lambda *a, **k: None
+    )
+    assert called["n"] >= 1

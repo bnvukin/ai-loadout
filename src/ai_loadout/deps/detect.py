@@ -186,6 +186,9 @@ def detect_one(
 def detect_all(store, which_fn=proc.which, run_fn=proc.run) -> list[dict]:
     """Detect every applicable dependency and write components into the digital twin."""
 
+    from ..util.path_env import refresh_process_path
+
+    refresh_process_path()
     family = store.hardware.os_family if store.hardware else _current_family()
     hardware = store.hardware
     managers = available_managers(which_fn)
