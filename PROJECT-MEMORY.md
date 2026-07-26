@@ -90,6 +90,25 @@ mutating install (winget/brew/apt) + a multi-GB `ollama pull` run in a disposabl
 each OS, a PyPI publish (so `pip install ai-loadout` works without cloning), and a
 "install a whole profile" batch flow. Remaining layers: 5-9, 12, 14-17, 19-20.
 
+### Session 3 — 2026-07-26 (dashboard reliability + env UX)
+User reported the action-log modal stuck on "Starting..." (WS showed "reconnecting...") and
+env var values appearing trimmed with no easy copy.
+- **Root cause:** `/ws` replayed 50+ buffered events in a tight `send_json` loop, which
+  dropped the connection at message 0 (`ConnectionClosedError: no close frame received or
+  sent`) before live events could arrive. Installs worked server-side; only the UI stream
+  was broken.
+- **Fix:** yield with `await asyncio.sleep(0)` between history frames, wrap sends in a
+  safe helper, serialize history via `to_dict()`. Frontend action logs now also poll
+  `GET /api/events?after=<id>` every ~1.2s (deduped by event id) so progress survives a
+  flaky socket during multi-minute installs.
+- **Env UX:** removed CSS ellipsis truncation on value cells; added one-click copy on env
+  vars, config paths, and PATH entries (secrets remain masked). Backend already returned
+  full values — display was the issue.
+- Verified: 124 tests green; live `/ws` holds open with non-empty history; dry-run install
+  API confirmed.
+- **Follow-up:** PowerShell `winget upgrade` when PS7 wasn't installed via winget should
+  fall back to install; real VM end-to-end install still pending.
+
 ## Open questions / future
 
 - Real end-to-end install test in a disposable VM/sandbox per OS before recommending

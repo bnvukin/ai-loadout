@@ -36,9 +36,11 @@ Legend: `[x]` done · `[~]` partial/functional-but-not-complete · `[ ]` not sta
 ## Pillars
 - [x] Config Center — discover + read (redacted) + env + PATH; **dashboard editor** opens,
   edits and saves files (trust-gated + auto-backup); env panel lists **every** variable
+  with full non-secret values + one-click copy
 - [x] Live, **actionable** dashboard — backend (FastAPI + `/ws` + orchestrator + action
   worker) and SPA where every non-green item is fixable (install/upgrade/repair/pull/edit)
-  with confirm + streaming logs + live badge updates
+  with confirm + streaming logs + live badge updates; WS history replay fixed + HTTP
+  polling fallback for action logs
 - [~] Continuous health monitoring — live event stream + per-component rescan done; periodic
   auto-rescan pending
 - [~] Zero-interrupt install flow + profiles/capabilities wizard — profiles + dry-run

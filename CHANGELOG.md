@@ -92,3 +92,10 @@ All notable changes to Loadout are documented here. The format is based on
   them (SAFE directly; ADVANCED/EXPERT require typing CONFIRM/EDIT; automatic backup), and
   the environment panel toggles AI-relevant / All with search. Adds a modal/toast/spinner
   system — still vanilla JS, no build step.
+
+### Fixed
+- **WebSocket history replay:** rapid-fire `/ws` backlog delivery no longer drops the
+  connection on connect (yield between sends + resilient send wrapper + `to_dict()` replay).
+  Action-log modal also polls `/api/events` as a fallback when the socket is flaky.
+- **Config Center env display:** non-secret values are no longer CSS-truncated; one-click
+  copy buttons on env vars, config paths, and PATH entries (secrets stay masked).
