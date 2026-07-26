@@ -151,8 +151,8 @@ works, not the vision.
 | Layer 2 — dependency manager (`loadout deps`) | ✅ done |
 | Layer 3 — AI runtime detection (`loadout runtimes`) | ✅ done (install via orchestrator) |
 | Layers 10 & 13 — health check + AI doctor (`loadout health` / `loadout doctor`) | ✅ done |
-| Config Center | 🚧 next |
-| Live dashboard | ⏳ |
+| Config Center — discover/read configs + env + PATH (`loadout config`) | ✅ done (edit gated) |
+| Live dashboard | 🚧 next |
 | Everything else | ⏳ roadmap |
 
 ## Safety & trust

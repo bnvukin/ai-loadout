@@ -34,6 +34,9 @@ time without re-deriving context. Newest entries at the top.
 - Batch 6: Layer 3 AI runtime/editor detection (`loadout runtimes`) + local model discovery.
 - Batch 7: Layers 10 & 13 health check + AI doctor (`loadout health` / `loadout doctor`) —
   twin + live probes → actionable issues with plain-language explain/fix/why/restart.
+- Batch 8: Config Center (`loadout config`) — discover well-known config files across OSes,
+  inspect AI env vars, analyse PATH (missing/duplicates); secrets redacted, read-only.
+  Trust-gated, backup-first edits live in `config.edit` (foundation for the dashboard).
 - (subsequent batches appended as delivered)
 
 ## Open questions / future

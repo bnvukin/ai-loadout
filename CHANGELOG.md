@@ -40,3 +40,9 @@ All notable changes to Loadout are documented here. The format is based on
   probes (Ollama server, Docker daemon, disk, internet, GPU, out-of-date/missing tools)
   and lists actionable issues; `loadout doctor` explains each in plain language with a
   fix, why-it-matters, and restart scope. Explanations are data-driven and testable.
+- Config Center (`loadout config`): discovers well-known config files (Continue, VS Code,
+  Cursor, Git, Docker, npm, pip, Hugging Face token, shell profiles) across OSes, inspects
+  AI-relevant environment variables, and analyses `PATH` for missing/duplicate entries.
+  Everything is **read-only** and secrets are redacted before display; `--show <key>`,
+  `--env` and `--path` focus the view. Trust-gated, backup-first edits are implemented in
+  `config.edit` (used by the dashboard later; not yet exposed on the CLI).

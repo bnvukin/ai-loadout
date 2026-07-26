@@ -30,7 +30,8 @@ Legend: `[x]` done · `[~]` partial/functional-but-not-complete · `[ ]` not sta
 - [ ] 20. Telemetry (opt-in)
 
 ## Pillars
-- [ ] Config Center (configs + env vars + PATH, read-only/edit w/ confirm + backup)
+- [~] Config Center (`loadout config`) — discover + read (redacted) + env + PATH done;
+  trust-gated backup-first edit foundation in `config.edit`; dashboard editor pending
 - [ ] Live dashboard (health, install timeline, live install, components, models, system)
 - [ ] Continuous health monitoring
 - [ ] Zero-interrupt install flow + profiles/capabilities wizard

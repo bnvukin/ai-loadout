@@ -235,6 +235,93 @@ def cmd_doctor(args: argparse.Namespace) -> int:
     return 0
 
 
+_TRUST_TAG = {"safe": "[safe]", "advanced": "[adv!]", "expert": "[EXP!]"}
+
+
+def _render_config_list(configs: list) -> None:
+    print("\nConfig files:")
+    for cf in configs:
+        tag = _TRUST_TAG.get(cf["trust"], "[?]")
+        mark = "[ ok    ]" if cf["exists"] else "[absent ]"
+        secret = "  (secrets redacted)" if cf["secret"] and cf["exists"] else ""
+        print(f"  {mark} {tag} {cf['name']:<22} {cf['path'] or ''}{secret}")
+
+
+def _render_env(rows: list) -> None:
+    present = [r for r in rows if r["present"]]
+    print(f"\nEnvironment variables ({len(present)} of {len(rows)} set):")
+    for r in present:
+        value = r["value"] if r["value"] is not None else ""
+        print(f"  {r['name']:<22} = {value}")
+
+
+def _render_path(summary: dict) -> None:
+    print(f"\nPATH: {summary['count']} entries", end="")
+    extras = []
+    if summary["missing"]:
+        extras.append(f"{len(summary['missing'])} missing")
+    if summary["duplicates"]:
+        extras.append(f"{len(summary['duplicates'])} duplicate")
+    print(f"  ({', '.join(extras)})" if extras else "  (all present, no duplicates)")
+    for entry in summary["entries"]:
+        flags = []
+        if not entry["exists"]:
+            flags.append("MISSING")
+        if entry["duplicate"]:
+            flags.append("DUP")
+        suffix = f"   <- {', '.join(flags)}" if flags else ""
+        print(f"    {entry['path']}{suffix}")
+
+
+def cmd_config(args: argparse.Namespace) -> int:
+    """Config Center - discover configs, inspect env vars and PATH (read-only)."""
+
+    from .config.discover import discover_all, read_config
+    from .config.env import inspect_env, path_summary
+    from .core.state import load_state
+
+    store = load_state()
+
+    if args.show:
+        result = read_config(args.show)
+        if args.json:
+            _print_json(result)
+            return 0
+        if not result.get("exists"):
+            print(f"'{args.show}': not found ({result.get('path') or 'no known path'}).")
+            return 1
+        if "error" in result:
+            print(f"Could not read '{args.show}': {result['error']}")
+            return 1
+        note = "  (secrets redacted)" if result.get("redacted") else ""
+        print(f"# {result['path']}{note}\n")
+        print(result["content"])
+        if result.get("truncated"):
+            print("\n... (truncated)")
+        return 0
+
+    configs = [cf.to_dict() for cf in discover_all(store)]
+    env_rows = inspect_env()
+    path = path_summary()
+
+    if args.json:
+        _print_json({"configs": configs, "env": env_rows, "path": path})
+        return 0
+    if args.env:
+        _render_env(env_rows)
+        return 0
+    if args.path:
+        _render_path(path)
+        return 0
+
+    print(BANNER)
+    _render_config_list(configs)
+    _render_env(env_rows)
+    _render_path(path)
+    print("\nView one file:  loadout config --show <key>   (secrets are always redacted)")
+    return 0
+
+
 def cmd_info(args: argparse.Namespace) -> int:
     """Show the last persisted digital-twin snapshot without rescanning."""
 
@@ -307,6 +394,12 @@ def build_parser() -> argparse.ArgumentParser:
 
     p_doctor = sub.add_parser("doctor", help="explain issues in plain language (Layer 13)")
     p_doctor.set_defaults(func=cmd_doctor)
+
+    p_config = sub.add_parser("config", help="Config Center: discover configs, env vars, PATH")
+    p_config.add_argument("--show", metavar="KEY", help="print one config file (secrets redacted)")
+    p_config.add_argument("--env", action="store_true", help="show AI-relevant env vars only")
+    p_config.add_argument("--path", action="store_true", help="show PATH entries + issues only")
+    p_config.set_defaults(func=cmd_config)
 
     # Registered fully in later batches; discoverable now so `--help` lists them.
     for name, hint in (
