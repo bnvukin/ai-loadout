@@ -99,3 +99,11 @@ All notable changes to Loadout are documented here. The format is based on
   Action-log modal also polls `/api/events` as a fallback when the socket is flaky.
 - **Config Center env display:** non-secret values are no longer CSS-truncated; one-click
   copy buttons on env vars, config paths, and PATH entries (secrets stay masked).
+
+### Fixed (session 3)
+- **Python 3.9 CI:** FastAPI route bodies used ``dict | None`` annotations that Pydantic
+  cannot evaluate on 3.9 — switched to ``Optional[dict]`` on dashboard POST handlers.
+- **winget upgrade/install recovery:** upgrade falls back to install when winget reports
+  no installed package; "already installed / no upgrade available" exits count as success.
+- **Stale PATH on Windows:** dependency/runtime detection refreshes PATH from the registry
+  so tools installed while the dashboard is running (pnpm, uv, …) rescan green without restart.

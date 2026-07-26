@@ -106,8 +106,19 @@ env var values appearing trimmed with no easy copy.
   full values — display was the issue.
 - Verified: 124 tests green; live `/ws` holds open with non-empty history; dry-run install
   API confirmed.
-- **Follow-up:** PowerShell `winget upgrade` when PS7 wasn't installed via winget should
-  fall back to install; real VM end-to-end install still pending.
+- **Follow-up:** Real VM end-to-end install still pending.
+
+### Session 4 — 2026-07-26 (CI py3.9 + winget recovery + PATH refresh)
+- **CI py3.9 root cause (from GitHub logs):** Pydantic failed evaluating FastAPI route
+  annotations ``dict | None`` at runtime (`TypeError: Unable to evaluate type annotation
+  'dict | None'`). All 16 dashboard tests failed on 3.9 across win/mac/linux; 3.12 passed.
+  Fix: ``Optional[dict]`` on POST route payloads in `server.py`; ruff UP045 ignored there.
+- **winget actions:** upgrade→install fallback when "No installed package found matching
+  input criteria"; non-zero exits with "already installed / no available upgrade" treated
+  as success (`actions/winget.py`, `runner._execute_with_recovery`).
+- **Windows PATH refresh:** `util/path_env.refresh_process_path()` reads HKCU/HKLM Path
+  before detection so pnpm/uv show green after winget install without dashboard restart.
+- 133 tests green locally after changes.
 
 ## Open questions / future
 

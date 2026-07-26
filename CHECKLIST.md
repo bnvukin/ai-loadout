@@ -52,7 +52,7 @@ Legend: `[x]` done · `[~]` partial/functional-but-not-complete · `[ ]` not sta
 - [x] Unit tests (detection parsing, recommendation, planner, config, action engine, endpoints)
 - [x] Dashboard smoke test (FastAPI TestClient + live `/ws` round-trip + action endpoints)
 - [x] CI (lint + test matrix: windows/macos/linux, py3.9 + py3.12)
-- [~] Manual end-to-end verification — read-only paths + dashboard actions (advice, dry-run
-  install, rescan, model refresh, repair preview, config raw-read) verified live on Windows;
+- [~] Manual end-to-end verification — read-only paths + dashboard actions verified live on
+  Windows; winget upgrade→install fallback + PATH refresh for post-install detection added;
   a **real** winget/brew/apt install + multi-GB model pull still need a disposable-VM run
   before recommending the repo for one-click setup by others
