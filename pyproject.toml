@@ -1,0 +1,80 @@
+[build-system]
+requires = ["hatchling>=1.21"]
+build-backend = "hatchling.build"
+
+[project]
+name = "ai-loadout"
+dynamic = ["version"]
+description = "One command to turn any Windows, macOS, or Linux machine into a production-ready AI development workstation."
+readme = "README.md"
+requires-python = ">=3.9"
+license = { file = "LICENSE" }
+authors = [{ name = "Loadout contributors" }]
+keywords = [
+  "ai", "workstation", "installer", "ollama", "llm", "bootstrap",
+  "developer-tools", "setup", "dashboard", "devtools", "mcp",
+]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Environment :: Console",
+  "Intended Audience :: Developers",
+  "License :: OSI Approved :: MIT License",
+  "Operating System :: Microsoft :: Windows",
+  "Operating System :: POSIX :: Linux",
+  "Operating System :: MacOS",
+  "Programming Language :: Python :: 3",
+  "Topic :: Software Development :: Build Tools",
+  "Topic :: System :: Installation/Setup",
+]
+
+# Runtime dependencies are intentionally minimal so the bootstrapper stays fast
+# to install and easy to audit. The dashboard extra pulls the web stack.
+dependencies = [
+  "psutil>=5.9",
+]
+
+[project.optional-dependencies]
+dashboard = [
+  "fastapi>=0.110",
+  "uvicorn[standard]>=0.27",
+]
+gpu = [
+  "pynvml>=11.5",
+]
+dev = [
+  "pytest>=8.0",
+  "pytest-asyncio>=0.23",
+  "httpx>=0.27",
+  "ruff>=0.4",
+  "fastapi>=0.110",
+  "uvicorn[standard]>=0.27",
+]
+
+[project.urls]
+Homepage = "https://github.com/bnvukin/ai-loadout"
+Repository = "https://github.com/bnvukin/ai-loadout"
+Issues = "https://github.com/bnvukin/ai-loadout/issues"
+
+[project.scripts]
+ai-loadout = "ai_loadout.cli:main"
+loadout = "ai_loadout.cli:main"
+
+[tool.hatch.version]
+path = "src/ai_loadout/__init__.py"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/ai_loadout"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra"
+asyncio_mode = "auto"
+
+[tool.ruff]
+line-length = 100
+target-version = "py39"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "W"]
+ignore = ["E501"]
