@@ -69,6 +69,7 @@ packages = ["src/ai_loadout"]
 testpaths = ["tests"]
 addopts = "-ra"
 asyncio_mode = "auto"
+pythonpath = ["src"]
 
 [tool.ruff]
 line-length = 100

@@ -3,9 +3,9 @@
 Legend: `[x]` done · `[~]` partial/functional-but-not-complete · `[ ]` not started
 
 ## Foundation
-- [~] Repo scaffolding (license, packaging, docs, hygiene)
-- [ ] Core state engine (digital twin) + events + lifecycle
-- [ ] CLI entry point (`loadout` / `ai-loadout`)
+- [x] Repo scaffolding (license, packaging, docs, hygiene)
+- [x] Core state engine (digital twin) + events + lifecycle
+- [~] CLI entry point (`loadout` / `ai-loadout`) — `version`/`info` done; more per layer
 
 ## Layers
 - [ ] 1. Machine validation (OS/CPU/RAM/GPU/VRAM/disk/internet/admin/virtualization)
