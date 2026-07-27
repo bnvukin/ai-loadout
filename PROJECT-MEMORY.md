@@ -135,6 +135,16 @@ env var values appearing trimmed with no easy copy.
   doc links — all reuse the env-var copy button + toast pattern.
 - 137 tests green locally.
 
+### Session 6 — 2026-07-27 (governance & safety docs)
+- Added honest governance pack: `DISCLAIMER.md`, `PRIVACY.md`, `docs/confirmation-policy.md`,
+  `docs/backup-policy.md`, `docs/logging-policy.md`, `docs/ai-recommendations.md`,
+  `docs/safety-principles.md`.
+- Enhanced `SECURITY.md` (supported versions, private reporting, no secrets in public issues),
+  `THIRD_PARTY_NOTICES.md` (tool table + URLs), `CONTRIBUTING.md` (contribution safety).
+- README: new "Safety, privacy & legal" section; softened checksum/overclaim in Highlights
+  and Safety & trust (Layer 14 planned, not done).
+- Dashboard sidebar: unobtrusive disclaimer + links to Disclaimer, Privacy, Safety on GitHub.
+
 ## Open questions / future
 
 - Real end-to-end install test in a disposable VM/sandbox per OS before recommending

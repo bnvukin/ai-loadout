@@ -111,3 +111,9 @@ All notable changes to Loadout are documented here. The format is based on
   ``proc.which`` refreshes before lookup and falls back to ``where.exe`` on Windows.
 - **Copy buttons:** install/update confirm modals, Why? advice (commands + doc links), model
   pull preview, action-log modal, and config editor paths all have one-click copy + toast.
+
+### Added
+- **Governance & safety docs:** `DISCLAIMER.md`, `PRIVACY.md`, and `docs/` policies
+  (confirmation, backup, logging, AI recommendations, safety principles); enhanced
+  `SECURITY.md`, `THIRD_PARTY_NOTICES.md`, `CONTRIBUTING.md`; README honesty fixes for
+  Layer 14 checksum claims; dashboard sidebar safety footer with doc links.

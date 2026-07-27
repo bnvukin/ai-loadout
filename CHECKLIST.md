@@ -4,6 +4,7 @@ Legend: `[x]` done · `[~]` partial/functional-but-not-complete · `[ ]` not sta
 
 ## Foundation
 - [x] Repo scaffolding (license, packaging, docs, hygiene)
+- [x] Governance & safety docs (DISCLAIMER, PRIVACY, `docs/*` policies, README + dashboard links)
 - [x] Core state engine (digital twin) + events + lifecycle
 - [x] CLI entry point (`loadout` / `ai-loadout`) — version/info/scan/deps/runtimes/models/
   health/doctor/config/plan/dashboard all live (CLI stays read-only; mutations go via dashboard)
