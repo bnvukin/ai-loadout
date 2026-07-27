@@ -79,7 +79,10 @@ def test_api_index_serves_something():
 def test_static_spa_bundle_is_served():
     client = TestClient(create_app(_store()))
     # The real SPA shell (not the fallback) is served at /.
-    assert "Overview" in client.get("/").text
+    html = client.get("/").text
+    assert "Overview" in html
+    assert "safety-foot" in html
+    assert "DISCLAIMER.md" in html
     for path in ("/static/app.js", "/static/style.css"):
         r = client.get(path)
         assert r.status_code == 200

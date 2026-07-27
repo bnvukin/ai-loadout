@@ -63,6 +63,11 @@ a { color: var(--accent); text-decoration: none; }
 
 .sidebar .spacer { flex: 1; }
 .sidebar .foot { color: var(--muted); font-size: 11px; }
+.safety-foot { margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border); }
+.safety-foot .safety-note { margin: 0 0 8px; color: var(--muted); font-size: 10px; line-height: 1.45; }
+.safety-links { display: flex; flex-wrap: wrap; gap: 8px; font-size: 10px; }
+.safety-links a { color: var(--muted); text-decoration: underline; text-underline-offset: 2px; }
+.safety-links a:hover { color: var(--accent); }
 
 /* -- main --------------------------------------------------------------------- */
 .main { padding: 26px 30px 60px; max-width: 1200px; }
