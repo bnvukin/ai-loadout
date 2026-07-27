@@ -167,6 +167,20 @@ env var values appearing trimmed with no easy copy.
 - **CI fix (`b42a5bd`):** `ProgressFn` alias used `int | None` inside `Callable[...]` —
   evaluated at import on py3.9; switched to `Optional[int]`. CI run `30279061333` all green.
 
+### Session 9 — 2026-07-27 (Wave C: Layers 6, 7, 8, 9)
+- **Layer 6:** `ai_loadout.vscode` — merge-fill-gaps recommended settings, curated extensions,
+  `preview()`/`apply()` with backup; CLI `loadout vscode`; dashboard VS Code panel + extension
+  install via action engine.
+- **Layer 7:** `ai_loadout.continue_cfg` — `config.yaml` schema **v1**; Ollama models from twin
+  + cloud providers when env vars present; secrets as `${env:VAR}` only; CLI + dashboard.
+- **Layer 8:** `ai_loadout.agents` — starter MCP config + folder scaffold; CLI + dashboard.
+- **Layer 9:** `ai_loadout.templates` — five minimal inline scaffolds; `loadout new`; dashboard
+  Templates panel; refuses non-empty target without force.
+- Shared utilities: `config/merge.py`, `config/write_util.py`, `util/yaml_simple.py`.
+- 188 tests green locally. Honest partials: templates are minimal stubs; extension install needs
+  `code`/`cursor` on PATH; Continue uses lightweight YAML writer (not full YAML spec); MCP
+  filesystem server needs Node/npx.
+
 ## Open questions / future
 
 - Real end-to-end install test in a disposable VM/sandbox per OS before recommending

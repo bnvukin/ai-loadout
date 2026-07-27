@@ -17,10 +17,14 @@ Legend: `[x]` done · `[~]` partial/functional-but-not-complete · `[ ]` not sta
 - [x] 3. AI runtime detect (Ollama/VS Code/Continue/CLIs) + install via dashboard action engine
 - [x] 4. Model recommendation (catalog + hardware-aware table + estimates)
 - [x] 5. Download manager — stdlib HTTP, resume/retry, SHA256 verify, allowlist; CLI dry-run; dashboard `POST /api/download`
-- [ ] 6. VS Code configuration (extensions + settings)
-- [ ] 7. Continue configuration (auto-generate)
-- [ ] 8. Agent/MCP configuration
-- [ ] 9. Project templates
+- [x] 6. VS Code configuration — merge-fill-gaps `settings.json`, curated extensions +
+  install commands (`code`/`cursor` on PATH); CLI preview; dashboard apply + extension install
+- [x] 7. Continue configuration — auto-generate `~/.continue/config.yaml` (schema v1) from
+  Ollama models + env-detected providers; `${env:VAR}` only; CLI preview; dashboard apply
+- [x] 8. Agent/MCP configuration — starter `.cursor/mcp.json` + rules/memory/prompts folders;
+  CLI preview; dashboard apply with backup
+- [x] 9. Project templates — FastAPI, Next.js, Python agent, RAG, MCP server (minimal stubs);
+  `loadout new` scaffolds into empty dir; dashboard create with confirm
 - [x] 10. Health check (`loadout health` — twin + live probes → actionable issues)
 - [~] 11. Auto repair — start-ollama / start-docker + install/update fixes wired to the
   dashboard "Fix now" buttons; PATH-dedupe & permission repairs pending

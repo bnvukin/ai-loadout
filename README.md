@@ -131,6 +131,10 @@ logged to `install.log`.
 | `loadout download <url> [--dest PATH] [--sha256 HEX]` | Dry-run direct download plan (official-source check) |
 | `loadout update` | Check Loadout self-update (PyPI) + component upgrades (read-only) |
 | `loadout benchmark` / `loadout benchmark --latest` | Run or show latest CPU/disk/inference benchmark |
+| `loadout vscode` | Preview merged VS Code / Cursor `settings.json` (read-only) |
+| `loadout continue` | Preview generated Continue `config.yaml` (read-only) |
+| `loadout agents` | Preview starter MCP config + agent folder scaffold (read-only) |
+| `loadout new --list` / `loadout new <template> <name> [--dir]` | List or scaffold a project template (creates new dir; `--force` to overwrite) |
 | `loadout plan --list` / `loadout plan --profile <key>` | Dry-run install plan for a profile |
 | `loadout dashboard` | Live web dashboard at `http://localhost:8421` |
 
@@ -183,6 +187,10 @@ Machine (digital twin)
 - `ai_loadout.models` — Layer 4 (catalog + hardware-aware recommendation).
 - `ai_loadout.health` — Layers 10 & 13 (health check + AI doctor).
 - `ai_loadout.config` — Config Center (discover / read / trust-gated edit / env + PATH).
+- `ai_loadout.vscode` — Layer 6 (settings merge, extension install commands).
+- `ai_loadout.continue_cfg` — Layer 7 (Continue `config.yaml` generation).
+- `ai_loadout.agents` — Layer 8 (MCP starter + workspace folders).
+- `ai_loadout.templates` — Layer 9 (project scaffolds).
 - `ai_loadout.actions` — Phase 2 execution engine (build / run / repair, streamed).
 - `ai_loadout.dashboard` — FastAPI + WebSocket live UI at `:8421`.
 - ... (more modules added per layer)
@@ -215,7 +223,11 @@ works, not the vision.
 | Layer 5 — download manager (resume/retry/verify, dashboard confirm) | ✅ done |
 | Layer 16 — update manager (`loadout update`, dashboard Updates panel) | ✅ done |
 | Layer 12 — benchmark (`loadout benchmark`, dashboard Benchmark panel) | ✅ done |
-| Layers 6–9, 19–20 | ⏳ roadmap |
+| Layer 6 — VS Code configuration (`loadout vscode`, dashboard VS Code panel) | ✅ done (merge-fill-gaps settings; extension install needs `code`/`cursor` on PATH) |
+| Layer 7 — Continue configuration (`loadout continue`, dashboard Continue panel) | ✅ done (`config.yaml` schema v1; `${env:VAR}` placeholders only) |
+| Layer 8 — Agent/MCP configuration (`loadout agents`, dashboard Agents/MCP panel) | ✅ done (starter MCP + folder scaffold; filesystem MCP needs Node/npx) |
+| Layer 9 — project templates (`loadout new`, dashboard Templates panel) | ✅ done (minimal runnable stubs — install deps yourself) |
+| Layers 19–20 | ⏳ roadmap |
 
 ## Safety & trust
 

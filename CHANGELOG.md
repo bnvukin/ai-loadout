@@ -125,7 +125,26 @@ All notable changes to Loadout are documented here. The format is based on
   (`POST /api/benchmark`, `GET /api/benchmark/latest`).
 
 ### Added
-- **Layer 14 — Security / integrity:** `ai_loadout.security` with official URL allowlist
+- **Wave C — Layers 6–9 (config generation):**
+  - **Layer 6 — VS Code:** `ai_loadout.vscode` with merge-fill-gaps `settings.json`,
+    curated extension list + `code --install-extension` command builder (action engine, not
+    `shell=True`); read-only `loadout vscode`; dashboard VS Code panel (preview, apply with
+    backup, per-extension install). Extension install requires `code` or `cursor` on PATH.
+  - **Layer 7 — Continue:** `ai_loadout.continue_cfg` builds `~/.continue/config.yaml`
+    (schema **v1**, YAML via lightweight `yaml_simple` — no PyYAML dep) from detected Ollama
+    models and env-present cloud providers; API keys as `${env:OPENAI_API_KEY}` placeholders
+    only; read-only `loadout continue`; dashboard Continue panel.
+  - **Layer 8 — Agents/MCP:** `ai_loadout.agents` starter `.cursor/mcp.json` (filesystem MCP
+    via npx) + `.cursor/rules`, `.cursor/memory`, `prompts/`, `memory/` scaffold; read-only
+    `loadout agents`; dashboard Agents/MCP panel.
+  - **Layer 9 — Templates:** `ai_loadout.templates` with five inline scaffolds (FastAPI,
+    Next.js, Python agent, RAG, MCP server) — minimal starter files, not full dependency
+    trees; `loadout new <template> <name>` (CLI may create new dirs; refuses non-empty without
+    `--force`); dashboard Templates panel.
+  - Shared: `config/merge.py` (JSONC + merge-fill-gaps), `config/write_util.py` (atomic write +
+    backup), `util/yaml_simple.py`.
+
+### Added `ai_loadout.security` with official URL allowlist
   (`is_official_source`), streaming SHA256 helpers (`compute_sha256`, `verify_sha256`),
   known-hash table scaffold for direct downloads, and a per-component trust posture report.
   Read-only `loadout security`, `GET /api/security`, and an Overview panel in the dashboard.
