@@ -54,8 +54,28 @@ def diagnostics_dir() -> Path:
     return data_dir() / "diagnostics"
 
 
+def cache_dir() -> Path:
+    return data_dir() / "cache"
+
+
+def config_file() -> Path:
+    return data_dir() / "config.json"
+
+
+def telemetry_dir() -> Path:
+    return data_dir() / "telemetry"
+
+
 def ensure_dirs() -> None:
     """Create the data directories if they do not exist yet."""
 
-    for directory in (data_dir(), logs_dir(), backups_dir(), runs_dir(), diagnostics_dir()):
+    for directory in (
+        data_dir(),
+        logs_dir(),
+        backups_dir(),
+        runs_dir(),
+        diagnostics_dir(),
+        cache_dir(),
+        telemetry_dir(),
+    ):
         directory.mkdir(parents=True, exist_ok=True)
