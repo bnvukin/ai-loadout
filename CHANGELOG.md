@@ -125,7 +125,21 @@ All notable changes to Loadout are documented here. The format is based on
   (`POST /api/benchmark`, `GET /api/benchmark/latest`).
 
 ### Added
-- **Wave C — Layers 6–9 (config generation):**
+- **Wave D — Layers 19–20 + pillars:**
+  - **Layer 19 — Offline:** `ai_loadout.offline` connectivity probe (timeout-guarded, injectable),
+    offline gating for network actions, `~/.ai-loadout/cache/` for download reuse; `loadout offline`;
+    dashboard online/offline badge + `GET /api/connectivity`.
+  - **Layer 20 — Telemetry:** opt-in only (`telemetry_enabled: false` default in `config.json`);
+    whitelisted anonymous fields stored locally in `~/.ai-loadout/telemetry/`; **no transmission**;
+    `loadout telemetry --status`; dashboard Settings/Privacy panel.
+  - **Pillar — Continuous monitor:** optional orchestrator periodic rescan (**default off**,
+    min 60s); `GET/POST /api/monitor`.
+  - **Pillar — Profile install wizard:** `GET /api/profiles`, plan + confirmed sequential install;
+    dashboard Profiles panel.
+  - **Pillar — Connections:** `GET /api/connections` — present/absent env vars only.
+  - **Pillar — PATH repairs:** `path-dedupe` and `fix-loadout-perms` repair actions with backup.
+
+### Added
   - **Layer 6 — VS Code:** `ai_loadout.vscode` with merge-fill-gaps `settings.json`,
     curated extension list + `code --install-extension` command builder (action engine, not
     `shell=True`); read-only `loadout vscode`; dashboard VS Code panel (preview, apply with

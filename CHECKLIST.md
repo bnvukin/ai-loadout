@@ -26,8 +26,7 @@ Legend: `[x]` done · `[~]` partial/functional-but-not-complete · `[ ]` not sta
 - [x] 9. Project templates — FastAPI, Next.js, Python agent, RAG, MCP server (minimal stubs);
   `loadout new` scaffolds into empty dir; dashboard create with confirm
 - [x] 10. Health check (`loadout health` — twin + live probes → actionable issues)
-- [~] 11. Auto repair — start-ollama / start-docker + install/update fixes wired to the
-  dashboard "Fix now" buttons; PATH-dedupe & permission repairs pending
+- [x] Layer 11 — auto-repair (start Ollama/Docker, install/update fixes, PATH dedupe, Loadout dir perms)
 - [x] 12. Benchmark — bounded CPU/disk/inference; tier heuristic; `benchmark-*.json` + log; CLI + dashboard panel
 - [x] 13. AI doctor (`loadout doctor` — plain-language explain/fix/why/restart)
 - [x] 14. Security — official URL allowlist, SHA256 helpers, trust posture report (`loadout security`, `/api/security`, dashboard Overview panel)
@@ -35,8 +34,8 @@ Legend: `[x]` done · `[~]` partial/functional-but-not-complete · `[ ]` not sta
 - [x] 16. Update manager — PyPI self-check (offline-safe) + component upgrade report; `loadout update`; dashboard Updates panel
 - [x] 17. Backup / restore — global snapshots + manifest; CLI create/list; dashboard restore with `RESTORE` gate
 - [x] 18. Profiles (`loadout plan` — curated loadouts + capabilities → dry-run plan)
-- [ ] 19. Offline support
-- [ ] 20. Telemetry (opt-in)
+- [x] 19. Offline support — connectivity probe, graceful degrade, download cache (`~/.ai-loadout/cache/`); CLI + dashboard badge; network actions gated
+- [x] 20. Telemetry (opt-in) — disabled by default; local-only events; no transmission endpoint; dashboard Settings panel
 
 ## Pillars
 - [x] Config Center — discover + read (redacted) + env + PATH; **dashboard editor** opens,
@@ -46,12 +45,9 @@ Legend: `[x]` done · `[~]` partial/functional-but-not-complete · `[ ]` not sta
   worker) and SPA where every non-green item is fixable (install/upgrade/repair/pull/edit)
   with confirm + streaming logs + live badge updates; WS history replay fixed + HTTP
   polling fallback for action logs; **Updates** and **Benchmark** panels; direct download API
-- [~] Continuous health monitoring — live event stream + per-component rescan done; periodic
-  auto-rescan pending
-- [~] Zero-interrupt install flow + profiles/capabilities wizard — profiles + dry-run
-  planner + bootstrap scripts + per-item installs done; batch "install a whole profile"
-  wizard pending
-- [ ] Connections page (deferred credentials/logins)
+- [~] Continuous health monitoring — live event stream + per-component rescan done; **optional periodic auto-rescan** (dashboard toggle, default off)
+- [~] Zero-interrupt install flow + profiles/capabilities wizard — profiles + dry-run planner + bootstrap scripts + per-item installs done; **batch profile install wizard** on dashboard
+- [x] Connections page — provider credential presence (no secrets) + setup guidance links
 
 ## Quality gates
 - [x] Unit tests (detection parsing, recommendation, planner, config, action engine, endpoints)

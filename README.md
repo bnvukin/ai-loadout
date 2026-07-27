@@ -135,6 +135,8 @@ logged to `install.log`.
 | `loadout continue` | Preview generated Continue `config.yaml` (read-only) |
 | `loadout agents` | Preview starter MCP config + agent folder scaffold (read-only) |
 | `loadout new --list` / `loadout new <template> <name> [--dir]` | List or scaffold a project template (creates new dir; `--force` to overwrite) |
+| `loadout offline` | Connectivity probe + offline capabilities + download cache report |
+| `loadout telemetry --status` | Telemetry opt-in status (local-only; disabled by default) |
 | `loadout plan --list` / `loadout plan --profile <key>` | Dry-run install plan for a profile |
 | `loadout dashboard` | Live web dashboard at `http://localhost:8421` |
 
@@ -191,6 +193,9 @@ Machine (digital twin)
 - `ai_loadout.continue_cfg` — Layer 7 (Continue `config.yaml` generation).
 - `ai_loadout.agents` — Layer 8 (MCP starter + workspace folders).
 - `ai_loadout.templates` — Layer 9 (project scaffolds).
+- `ai_loadout.offline` — Layer 19 (connectivity probe, offline gating, download cache).
+- `ai_loadout.telemetry` — Layer 20 (opt-in local-only anonymous stats).
+- `ai_loadout.connections` — Connections pillar (credential presence guidance).
 - `ai_loadout.actions` — Phase 2 execution engine (build / run / repair, streamed).
 - `ai_loadout.dashboard` — FastAPI + WebSocket live UI at `:8421`.
 - ... (more modules added per layer)
@@ -227,7 +232,13 @@ works, not the vision.
 | Layer 7 — Continue configuration (`loadout continue`, dashboard Continue panel) | ✅ done (`config.yaml` schema v1; `${env:VAR}` placeholders only) |
 | Layer 8 — Agent/MCP configuration (`loadout agents`, dashboard Agents/MCP panel) | ✅ done (starter MCP + folder scaffold; filesystem MCP needs Node/npx) |
 | Layer 9 — project templates (`loadout new`, dashboard Templates panel) | ✅ done (minimal runnable stubs — install deps yourself) |
-| Layers 19–20 | ⏳ roadmap |
+| Layer 19 — offline support (`loadout offline`, dashboard offline badge) | ✅ done (graceful degrade; download cache reuse — not full repo mirroring) |
+| Layer 20 — opt-in telemetry (`loadout telemetry`, dashboard Settings) | ✅ done (local-only; **no transmission**; disabled by default) |
+| Continuous auto-rescan monitor | ✅ done (dashboard toggle; **default off**; min 60s interval) |
+| Batch profile install wizard | ✅ done (dashboard Profiles panel; sequential install + streaming) |
+| Connections page | ✅ done (presence-only env detection; setup links) |
+| PATH dedupe + Loadout permission repairs | ✅ done (confirm + backup; Windows HKCU PATH write; Unix process PATH + guidance) |
+| Packaging / PyPI publish | ⏳ roadmap |
 
 ## Safety & trust
 

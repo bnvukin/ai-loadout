@@ -181,6 +181,17 @@ env var values appearing trimmed with no easy copy.
   `code`/`cursor` on PATH; Continue uses lightweight YAML writer (not full YAML spec); MCP
   filesystem server needs Node/npx.
 
+### Session 10 — 2026-07-27 (Wave D: Layers 19, 20 + pillars)
+- **Layer 19:** `ai_loadout.offline` — connectivity probe, offline gating, download cache;
+  `loadout offline`; dashboard badge + disabled network actions when offline.
+- **Layer 20:** `ai_loadout.telemetry` — opt-in local-only events; no transmission; Settings panel.
+- **Pillars:** periodic monitor (default off), profile batch install wizard, Connections page,
+  PATH dedupe + Loadout permission repairs (confirm + backup).
+- Shared: `core/settings.py` for `config.json` (telemetry + monitor flags).
+- 207 tests green locally. Honest partials: telemetry stores locally only; offline cache is
+  download reuse not full mirroring; monitor default off; PATH repair on Unix updates process
+  PATH with shell-profile guidance (Windows writes HKCU).
+
 ## Open questions / future
 
 - Real end-to-end install test in a disposable VM/sandbox per OS before recommending
