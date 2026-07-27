@@ -7,7 +7,7 @@ Legend: `[x]` done · `[~]` partial/functional-but-not-complete · `[ ]` not sta
 - [x] Governance & safety docs (DISCLAIMER, PRIVACY, `docs/*` policies, README + dashboard links)
 - [x] Core state engine (digital twin) + events + lifecycle
 - [x] CLI entry point (`loadout` / `ai-loadout`) — version/info/scan/deps/runtimes/models/
-  health/doctor/config/security/diagnostics/backup/plan/dashboard all live (CLI stays read-only; mutations go via dashboard)
+  health/doctor/config/security/diagnostics/backup/download/update/benchmark/plan/dashboard all live (CLI stays read-only; mutations go via dashboard)
 - [x] Phase 2 action engine (`ai_loadout.actions`) — build argv (win/mac/linux) + streaming
   runner (→ `install.log` + events) + single-component rescan + Layer 11 repairs + why/impact
 
@@ -16,7 +16,7 @@ Legend: `[x]` done · `[~]` partial/functional-but-not-complete · `[ ]` not sta
 - [x] 2. Dependency manager (detect + decision tree)
 - [x] 3. AI runtime detect (Ollama/VS Code/Continue/CLIs) + install via dashboard action engine
 - [x] 4. Model recommendation (catalog + hardware-aware table + estimates)
-- [ ] 5. Download manager (resume/retry/verify)
+- [x] 5. Download manager — stdlib HTTP, resume/retry, SHA256 verify, allowlist; CLI dry-run; dashboard `POST /api/download`
 - [ ] 6. VS Code configuration (extensions + settings)
 - [ ] 7. Continue configuration (auto-generate)
 - [ ] 8. Agent/MCP configuration
@@ -24,11 +24,11 @@ Legend: `[x]` done · `[~]` partial/functional-but-not-complete · `[ ]` not sta
 - [x] 10. Health check (`loadout health` — twin + live probes → actionable issues)
 - [~] 11. Auto repair — start-ollama / start-docker + install/update fixes wired to the
   dashboard "Fix now" buttons; PATH-dedupe & permission repairs pending
-- [ ] 12. Benchmark
+- [x] 12. Benchmark — bounded CPU/disk/inference; tier heuristic; `benchmark-*.json` + log; CLI + dashboard panel
 - [x] 13. AI doctor (`loadout doctor` — plain-language explain/fix/why/restart)
 - [x] 14. Security — official URL allowlist, SHA256 helpers, trust posture report (`loadout security`, `/api/security`, dashboard Overview panel)
 - [x] 15. Logging — `system.json` snapshot, redacted `diagnostics.zip` (`loadout diagnostics`, dashboard button)
-- [ ] 16. Update manager
+- [x] 16. Update manager — PyPI self-check (offline-safe) + component upgrade report; `loadout update`; dashboard Updates panel
 - [x] 17. Backup / restore — global snapshots + manifest; CLI create/list; dashboard restore with `RESTORE` gate
 - [x] 18. Profiles (`loadout plan` — curated loadouts + capabilities → dry-run plan)
 - [ ] 19. Offline support
@@ -41,7 +41,7 @@ Legend: `[x]` done · `[~]` partial/functional-but-not-complete · `[ ]` not sta
 - [x] Live, **actionable** dashboard — backend (FastAPI + `/ws` + orchestrator + action
   worker) and SPA where every non-green item is fixable (install/upgrade/repair/pull/edit)
   with confirm + streaming logs + live badge updates; WS history replay fixed + HTTP
-  polling fallback for action logs
+  polling fallback for action logs; **Updates** and **Benchmark** panels; direct download API
 - [~] Continuous health monitoring — live event stream + per-component rescan done; periodic
   auto-rescan pending
 - [~] Zero-interrupt install flow + profiles/capabilities wizard — profiles + dry-run

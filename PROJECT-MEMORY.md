@@ -155,6 +155,16 @@ env var values appearing trimmed with no easy copy.
 - 151 tests green locally; README/CHECKLIST/CHANGELOG/governance docs updated honestly
   (Layer 5 download-manager will wire checksum checks; no env-var restore yet).
 
+### Session 8 — 2026-07-27 (Wave B: Layers 5, 16, 12)
+- **Layer 5:** `ai_loadout.download` — resume/retry/allowlist/SHA256; `loadout download`
+  dry-run; dashboard confirmed download with streaming logs.
+- **Layer 16:** PyPI self-check + component upgrade report; `loadout update`;
+  dashboard Updates panel with existing upgrade actions + rollback hints.
+- **Layer 12:** bounded CPU/disk/Ollama inference benchmark; tier heuristic;
+  `loadout benchmark`; dashboard Benchmark panel.
+- 170 tests green locally. Honest partials: inference only when Ollama responds;
+  self-update is check + pip hints (no auto-upgrade); model pulls still use Ollama CLI.
+
 ## Open questions / future
 
 - Real end-to-end install test in a disposable VM/sandbox per OS before recommending

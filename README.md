@@ -128,6 +128,9 @@ logged to `install.log`.
 | `loadout diagnostics` | Bundle redacted logs + state into `~/.ai-loadout/diagnostics/` |
 | `loadout backup` / `loadout backup --list` | Create or list global config snapshots |
 | `loadout restore <id> --confirm RESTORE` | Restore a snapshot (destructive; dashboard preferred) |
+| `loadout download <url> [--dest PATH] [--sha256 HEX]` | Dry-run direct download plan (official-source check) |
+| `loadout update` | Check Loadout self-update (PyPI) + component upgrades (read-only) |
+| `loadout benchmark` / `loadout benchmark --latest` | Run or show latest CPU/disk/inference benchmark |
 | `loadout plan --list` / `loadout plan --profile <key>` | Dry-run install plan for a profile |
 | `loadout dashboard` | Live web dashboard at `http://localhost:8421` |
 
@@ -209,16 +212,18 @@ works, not the vision.
 | Layer 14 — security / integrity (`loadout security`, `/api/security`) | ✅ done |
 | Layer 15 — logging & diagnostics (`system.json`, `loadout diagnostics`) | ✅ done |
 | Layer 17 — global backup / restore (`loadout backup`, dashboard restore) | ✅ done |
-| Layers 5–9, 12, 16, 19–20 | ⏳ roadmap |
+| Layer 5 — download manager (resume/retry/verify, dashboard confirm) | ✅ done |
+| Layer 16 — update manager (`loadout update`, dashboard Updates panel) | ✅ done |
+| Layer 12 — benchmark (`loadout benchmark`, dashboard Benchmark panel) | ✅ done |
+| Layers 6–9, 19–20 | ⏳ roadmap |
 
 ## Safety & trust
 
 - **Official sources** — install commands use vendor package IDs (winget, choco, brew, apt,
   npm, pip, Ollama). **Trust posture:** `loadout security` and the dashboard Overview panel
   show how each component is sourced; an official URL allowlist gates direct downloads;
-  SHA256 verification applies when Loadout fetches files directly (today installs go through
-  package managers, which verify their own signatures/hashes). Download-manager integration
-  (Layer 5) will call these checks automatically.
+  the download manager (`loadout download` / dashboard) enforces the allowlist and SHA256
+  when a hash is supplied. Package-manager installs delegate verification to winget/brew/etc.
 - **Read-only CLI; confirm in dashboard** — `loadout scan` / `plan` / `config --show` do
   not mutate your system. Installs, repairs, model pulls, and config saves run from the
   dashboard only after you confirm (command preview + modal).

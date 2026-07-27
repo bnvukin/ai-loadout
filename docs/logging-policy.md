@@ -18,6 +18,8 @@ Action output is also streamed over the dashboard WebSocket (with HTTP polling f
 |----------|----------|
 | `~/.ai-loadout/logs/system.json` | Machine + component snapshot (env values redacted) |
 | `~/.ai-loadout/diagnostics/diagnostics-*.zip` | Bundle of logs, `state.json`, `system.json`, `versions.json` (redacted) |
+| `~/.ai-loadout/logs/benchmark.log` | Append-only benchmark run summary |
+| `~/.ai-loadout/logs/benchmark-*.json` | Structured benchmark snapshots |
 | `loadout diagnostics` / dashboard **Download diagnostics** | Creates the zip on demand |
 
 ## Digital twin state
@@ -39,7 +41,6 @@ not stored them in tracked fields.
 
 ## Planned (not implemented)
 
-- **Layer 12 — Benchmark:** `benchmark.log` for inference/disk timings.
 - Central log shipping or remote aggregation — **not planned** without explicit opt-in.
 
 See [PRIVACY.md](../PRIVACY.md).

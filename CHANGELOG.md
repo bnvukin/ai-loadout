@@ -113,6 +113,18 @@ All notable changes to Loadout are documented here. The format is based on
   pull preview, action-log modal, and config editor paths all have one-click copy + toast.
 
 ### Added
+- **Layer 5 — Download manager:** `ai_loadout.download` with stdlib HTTP streaming,
+  resume (`Range`), retry/backoff, official-source allowlist, and SHA256 verification.
+  Read-only `loadout download`; dashboard `GET /api/download/plan` and confirmed
+  `POST /api/download` with event-bus progress.
+- **Layer 16 — Update manager:** PyPI self-update check with offline fallback;
+  component upgrade report from the digital twin; read-only `loadout update`;
+  `GET /api/updates` and dashboard Updates panel with upgrade buttons + rollback hints.
+- **Layer 12 — Benchmark:** bounded CPU/disk/inference micro-benchmark; tier heuristic;
+  `benchmark-*.json` + `benchmark.log`; `loadout benchmark` and dashboard Benchmark panel
+  (`POST /api/benchmark`, `GET /api/benchmark/latest`).
+
+### Added
 - **Layer 14 — Security / integrity:** `ai_loadout.security` with official URL allowlist
   (`is_official_source`), streaming SHA256 helpers (`compute_sha256`, `verify_sha256`),
   known-hash table scaffold for direct downloads, and a per-component trust posture report.
