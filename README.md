@@ -62,9 +62,9 @@ state. That is what turns "a bunch of scripts" into a platform you can extend.
   VS Code `settings.json`, `PATH`, and **every** environment variable) discovered,
   categorized, searchable. Open a file, edit it, and save — SAFE files save directly,
   ADVANCED/EXPERT require typing `CONFIRM`/`EDIT`, and every write is backed up first.
-- **Safety first** — official download sources only, checksum verification, three trust
-  levels (🟢 Safe / 🟡 Advanced / 🔴 Expert), and "what changes / why / how to undo /
-  restart needed" before any risky edit.
+- **Safety first** — official package-manager sources in command templates; config edits
+  trust-gated (`CONFIRM` / `EDIT`) with per-file backup. Checksum verification is **planned**
+  (Layer 14). See [Safety, privacy & legal](#safety-privacy--legal).
 - **Profiles & Capabilities** — pick *ml-engineer* or *agentic-coder* instead of ticking
   50 tools; each expands transparently into the underlying components (`loadout plan`).
 
@@ -205,12 +205,32 @@ works, not the vision.
 
 ## Safety & trust
 
-- Downloads only from **official sources**; installers are checksum-verified where a
-  published hash exists.
-- **Read-only by default.** Mutating actions require explicit confirmation; risky ones
-  require typing `EDIT`.
-- Loadout never transmits your data. Telemetry (if ever added) is strictly opt-in and
-  anonymous.
+- **Official sources** — install commands use vendor package IDs (winget, choco, brew, apt,
+  npm, pip, Ollama). **Checksum/signature verification is planned (Layer 14), not
+  implemented today.**
+- **Read-only CLI; confirm in dashboard** — `loadout scan` / `plan` / `config --show` do
+  not mutate your system. Installs, repairs, model pulls, and config saves run from the
+  dashboard only after you confirm (command preview + modal).
+- **Three trust levels for config saves** — 🟢 SAFE (save directly), 🟡 ADVANCED (type
+  `CONFIRM`), 🔴 EXPERT (type `EDIT`); each overwrite backs up to `~/.ai-loadout/backups/`.
+- **Local-first, no telemetry** — data stays on your machine; telemetry is not implemented
+  (Layer 20 planned as opt-in only).
+
+See [Safety, privacy & legal](#safety-privacy--legal) for policies and disclaimers.
+
+## Safety, privacy & legal
+
+| Document | Summary |
+|----------|---------|
+| [DISCLAIMER.md](./DISCLAIMER.md) | No warranty; what Loadout can change; third-party software |
+| [PRIVACY.md](./PRIVACY.md) | Local-first; no telemetry today; what is stored under `~/.ai-loadout/` |
+| [SECURITY.md](./SECURITY.md) | Vulnerability reporting; supported versions |
+| [THIRD_PARTY_NOTICES.md](./THIRD_PARTY_NOTICES.md) | Tools Loadout automates; their licenses |
+| [docs/safety-principles.md](./docs/safety-principles.md) | Design principles (local-first, confirm before risk, …) |
+| [docs/confirmation-policy.md](./docs/confirmation-policy.md) | Trust levels + confirm modal behaviour |
+| [docs/backup-policy.md](./docs/backup-policy.md) | Per-file config backups (global restore planned) |
+| [docs/logging-policy.md](./docs/logging-policy.md) | `install.log`, events, redaction |
+| [docs/ai-recommendations.md](./docs/ai-recommendations.md) | Model/health advice is assistive, not guaranteed |
 
 ## Contributing
 

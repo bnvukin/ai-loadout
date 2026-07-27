@@ -48,3 +48,19 @@ ratings, offline flag, provider, and a one-line "best for". A test validates the
 
 Small, focused commits with clear messages. Conventional prefixes are appreciated
 (`feat:`, `fix:`, `docs:`, `refactor:`, `test:`, `chore:`) but not required.
+
+## Contribution safety
+
+- **Local-first:** features should not require a Loadout cloud service or send user data
+  off-machine without explicit, documented opt-in.
+- **No hidden telemetry:** do not add analytics or phone-home behaviour; Layer 20 remains
+  planned as opt-in only.
+- **Document external deps & permissions:** new package managers, shell commands, or file
+  paths must be listed in docs and [THIRD_PARTY_NOTICES.md](./THIRD_PARTY_NOTICES.md) where
+  relevant.
+- **Preserve privacy:** redact secrets in logs and UI; never log API keys or tokens.
+- **Honest docs:** if a feature is partial or planned, say so in README, CHECKLIST, and
+  the relevant `docs/` policy — do not imply checksum verification, global backup, or
+  telemetry exist before they do.
+- **Mutations gated:** dashboard/CLI changes that install, edit, or delete must keep
+  confirmation + logging consistent with [docs/confirmation-policy.md](./docs/confirmation-policy.md).
