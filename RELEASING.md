@@ -90,4 +90,4 @@ loadout dashboard
 - Templates are inline Python strings (no extra package data needed)
 
 Runtime dependencies: `psutil` (core). Install the dashboard with `pip install ai-loadout[dashboard]`
-which adds `fastapi` and `uvicorn[standard]`.
+which adds `fastapi`, `uvicorn[standard]`, and `httpx` (for dashboard HTTP smoke / self-test).

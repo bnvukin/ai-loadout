@@ -79,7 +79,10 @@ def _check_dashboard_app() -> dict:
 
 
 def _check_dashboard_testclient() -> dict:
-    from fastapi.testclient import TestClient
+    try:
+        from fastapi.testclient import TestClient
+    except RuntimeError as exc:
+        return {"ok": False, "detail": str(exc)}
 
     from ai_loadout.core.state import StateStore
     from ai_loadout.dashboard.server import create_app
@@ -241,7 +244,8 @@ def run_self_test(
         checks.append(_check("cli_subcommands", _check_cli_parser))
         checks.append(_check("dashboard_static_assets", _check_dashboard_static))
         checks.append(_check("dashboard_app_import", _check_dashboard_app))
-        checks.append(_check("dashboard_http_testclient", _check_dashboard_testclient))
+        if not bind_http:
+            checks.append(_check("dashboard_http_testclient", _check_dashboard_testclient))
         if bind_http:
             checks.append(_check("dashboard_http_bind", lambda: _check_dashboard_bind_http()))
         if use_temp_home:
