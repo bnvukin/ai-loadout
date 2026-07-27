@@ -46,8 +46,16 @@ def benchmark_log() -> Path:
     return logs_dir() / "benchmark.log"
 
 
+def system_log() -> Path:
+    return logs_dir() / "system.json"
+
+
+def diagnostics_dir() -> Path:
+    return data_dir() / "diagnostics"
+
+
 def ensure_dirs() -> None:
     """Create the data directories if they do not exist yet."""
 
-    for directory in (data_dir(), logs_dir(), backups_dir(), runs_dir()):
+    for directory in (data_dir(), logs_dir(), backups_dir(), runs_dir(), diagnostics_dir()):
         directory.mkdir(parents=True, exist_ok=True)
