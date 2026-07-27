@@ -32,6 +32,8 @@
     components: ["Components", "Every managed tool - fix anything that isn't green, right here."],
     models: ["Models", "Hardware-aware recommendations. Install with one click."],
     config: ["Config Center", "Open, edit and save config files. Browse every environment variable."],
+    updates: ["Updates", "Loadout self-update status and component upgrades."],
+    benchmark: ["Benchmark", "CPU, disk, and inference measurements for this machine."],
     activity: ["Activity", "Live event stream from the orchestrator."],
   };
 
@@ -489,11 +491,86 @@
     )}">${esc(e.level)}</span><span>${esc(e.message)}</span></div>`;
   }
 
+  async function renderUpdates() {
+    const host = $("#view-updates");
+    const data = await api("/api/updates");
+    const self = data.self || {};
+    const rows = (data.components || [])
+      .map(
+        (c) => `<tr>
+        <td><strong>${esc(c.name)}</strong></td>
+        <td class="mono">${esc(c.current || "missing")}</td>
+        <td class="muted">${esc(c.minimum || "")}</td>
+        <td class="right"><button class="btn sm warn" data-act="upgrade" data-key="${esc(c.key)}">Update</button></td>
+      </tr>`
+      )
+      .join("");
+    const selfBadge = self.update_available
+      ? badge("yellow")
+      : self.offline
+        ? badge("gray")
+        : badge("green");
+    host.innerHTML = `
+      <div class="card">
+        <div class="card-head">
+          <h3>Loadout</h3>
+          <button class="btn sm ghost" data-act="refresh-updates">Check now</button>
+        </div>
+        <div class="kv">
+          <div class="k">Installed</div><div class="v mono">${esc(self.current || "?")}</div>
+          <div class="k">Latest (PyPI)</div><div class="v mono">${esc(self.latest || (self.offline ? "offline" : "?"))}</div>
+          <div class="k">Status</div><div class="v">${selfBadge} ${self.update_available ? "update available" : self.offline ? "offline" : "up to date"}</div>
+        </div>
+        ${self.upgrade_hint ? `<p class="muted tiny">Upgrade: <code>${esc(self.upgrade_hint)}</code></p>` : ""}
+        <p class="muted tiny">Rollback: <code>${esc((data.rollback || {}).loadout || "")}</code></p>
+        ${self.changelog_url ? `<p class="muted tiny"><a href="${esc(self.changelog_url)}" target="_blank" rel="noopener">Changelog</a></p>` : ""}
+      </div>
+      <div class="card" style="margin-top:16px">
+        <h3>Component upgrades (${(data.components || []).length})</h3>
+        <table><thead><tr><th>Component</th><th>Version</th><th>Minimum</th><th></th></tr></thead>
+        <tbody>${rows || '<tr><td colspan="4" class="empty">All managed components look current.</td></tr>'}</tbody></table>
+      </div>`;
+  }
+
+  async function renderBenchmark() {
+    const host = $("#view-benchmark");
+    const data = await api("/api/benchmark/latest");
+    const b = data.benchmark;
+    const tier = b && b.tier ? b.tier.tier : "—";
+    const label = b && b.tier ? b.tier.label : "Run a benchmark to size this machine.";
+    host.innerHTML = `
+      <div class="card">
+        <div class="card-head">
+          <h3>Latest results</h3>
+          <button class="btn sm" data-act="run-benchmark">Run benchmark</button>
+        </div>
+        ${
+          b
+            ? `<div class="kv">
+          <div class="k">Tier</div><div class="v"><span class="trust safe">${esc(tier)}</span> ${esc(label)}</div>
+          <div class="k">CPU score</div><div class="v mono">${esc(b.cpu && b.cpu.score)}</div>
+          <div class="k">Disk write</div><div class="v mono">${esc(b.disk && b.disk.write_mbps)} MB/s</div>
+          <div class="k">Disk read</div><div class="v mono">${esc(b.disk && b.disk.read_mbps)} MB/s</div>
+          <div class="k">RAM</div><div class="v">${esc(b.hardware && b.hardware.ram_gb)} GB</div>
+          <div class="k">VRAM</div><div class="v">${esc(b.hardware && b.hardware.vram_gb)} GB</div>
+          <div class="k">Inference</div><div class="v">${
+            b.inference && b.inference.skipped
+              ? esc("skipped (" + (b.inference.reason || "no Ollama") + ")")
+              : esc((b.inference && b.inference.tokens_per_sec) + " tok/s")
+          }</div>
+        </div>`
+            : '<div class="empty">No benchmark yet. Click Run benchmark (fast, ~1s).</div>'
+        }
+      </div>`;
+  }
+
   const RENDERERS = {
     overview: renderOverview,
     components: renderComponents,
     models: renderModels,
     config: renderConfig,
+    updates: renderUpdates,
+    benchmark: renderBenchmark,
     activity: renderActivity,
   };
 
@@ -630,6 +707,20 @@
     if (host)
       host.innerHTML = `Saved: <a href="${esc(link)}" download>${esc(j.filename)}</a> (${esc(j.path)})`;
     toast("Diagnostics ready.", "success");
+  }
+
+  async function refreshUpdates() {
+    toast("Checking for updates...");
+    if (store.view === "updates") refresh();
+  }
+
+  async function runBenchmark() {
+    toast("Running benchmark...");
+    openActionLog("benchmark", "Benchmark");
+    const res = await post("/api/benchmark", {});
+    if (!res.ok || res.json.started === false) {
+      toast(res.json.busy ? "Another action is running." : "Could not start benchmark.", "warning");
+    }
   }
 
   async function toggleWhy(key, btn) {
@@ -859,6 +950,8 @@
     if (act === "create-backup") return createBackup();
     if (act === "restore-backup") return startRestoreBackup(el.dataset.id);
     if (act === "download-diagnostics") return downloadDiagnostics();
+    if (act === "refresh-updates") return refreshUpdates();
+    if (act === "run-benchmark") return runBenchmark();
   }
 
   // -- boot ---------------------------------------------------------------------

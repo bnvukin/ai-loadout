@@ -127,6 +127,61 @@ def create_app(store: StateStore | None = None, orchestrator: Orchestrator | Non
 
         return {"snapshots": list_snapshots()}
 
+    @app.get("/api/updates")
+    def updates_report() -> dict:
+        from ..update.report import build_update_report
+
+        return build_update_report(store)
+
+    @app.get("/api/download/plan")
+    def download_plan(url: str, dest: str = "") -> dict:
+        from ..download.manager import plan_download
+
+        return plan_download(url, dest=dest or None)
+
+    @app.post("/api/download")
+    def download_start(payload: Optional[dict] = None) -> dict:
+        from ..download.manager import download_with_bus, plan_download
+
+        payload = payload or {}
+        url = payload.get("url")
+        if not url:
+            raise HTTPException(status_code=400, detail="url is required")
+        plan = plan_download(url, dest=payload.get("dest"), expected_sha256=payload.get("sha256"))
+        if not plan["ok"]:
+            raise HTTPException(status_code=400, detail=plan.get("reason") or "blocked")
+        if payload.get("dry_run") or not payload.get("confirm"):
+            return {"dry_run": True, "plan": plan}
+        started = orch.launch_action(
+            f"download:{url}",
+            lambda: download_with_bus(
+                store,
+                url,
+                dest=payload.get("dest"),
+                expected_sha256=payload.get("sha256"),
+            ),
+        )
+        return {"dry_run": False, "plan": plan, **started}
+
+    @app.get("/api/benchmark/latest")
+    def benchmark_latest() -> dict:
+        from ..benchmark.runner import latest_benchmark
+
+        result = latest_benchmark()
+        return {"benchmark": result}
+
+    @app.post("/api/benchmark")
+    def benchmark_run(payload: Optional[dict] = None) -> dict:
+        from ..benchmark.runner import run_benchmark
+
+        payload = payload or {}
+        fast = not payload.get("full")
+        started = orch.launch_action(
+            "benchmark",
+            lambda: run_benchmark(store, fast=fast, bus=store.bus),
+        )
+        return started
+
     @app.post("/api/backups")
     def backups_create() -> dict:
         from ..backup.snapshot import create_snapshot

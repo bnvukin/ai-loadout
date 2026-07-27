@@ -237,6 +237,33 @@ def test_api_diagnostics_creates_zip(loadout_home):
     assert dl.headers.get("content-type", "").startswith("application/")
 
 
+def test_api_updates_report():
+    client = TestClient(create_app(_store()))
+    body = client.get("/api/updates").json()
+    assert "self" in body and "components" in body
+
+
+def test_api_download_plan_and_dry_run():
+    client = TestClient(create_app(_store()))
+    plan = client.get(
+        "/api/download/plan",
+        params={"url": "https://github.com/bnvukin/ai-loadout/releases/x.bin"},
+    ).json()
+    assert plan["official_source"] is True
+    dry = client.post(
+        "/api/download",
+        json={"url": "https://github.com/bnvukin/ai-loadout/releases/x.bin"},
+    ).json()
+    assert dry["dry_run"] is True
+
+
+def test_api_benchmark_latest_and_start():
+    client = TestClient(create_app(_store()))
+    assert client.get("/api/benchmark/latest").json()["benchmark"] is None
+    started = client.post("/api/benchmark", json={}).json()
+    assert started["started"] is True
+
+
 def test_api_backups_create_and_restore_gated(loadout_home, tmp_path, monkeypatch):
     fake_home = tmp_path / "userhome"
     fake_home.mkdir()

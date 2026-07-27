@@ -492,6 +492,106 @@ def cmd_restore(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_download(args: argparse.Namespace) -> int:
+    """Layer 5 - dry-run direct download plan (official-source check)."""
+
+    from .download.manager import plan_download
+
+    plan = plan_download(args.url, dest=args.dest, expected_sha256=args.sha256)
+    if args.json:
+        _print_json(plan)
+        return 0 if plan["ok"] else 1
+    print(BANNER)
+    if not plan["ok"]:
+        print(f"Blocked: {plan['reason']}")
+        return 1
+    print(f"URL:     {plan['url']}  (official source)")
+    print(f"Save to: {plan['dest']}")
+    if plan["resume_bytes"]:
+        print(f"Resume:  {plan['resume_bytes']} bytes already in .part file")
+    if plan["verify_sha256"]:
+        print(f"SHA256:  {plan['verify_sha256']}")
+    print("\nThis is a dry run. Run the download from the dashboard after confirming.")
+    return 0
+
+
+def cmd_update(args: argparse.Namespace) -> int:
+    """Layer 16 - check for Loadout + component updates (read-only)."""
+
+    from .core.state import load_state
+    from .update.report import build_update_report
+
+    store = load_state()
+    report = build_update_report(store)
+    if args.json:
+        _print_json(report)
+        return 0
+    print(BANNER)
+    self_info = report["self"]
+    print(f"Loadout: {self_info['current']}", end="")
+    if self_info.get("offline"):
+        print("  (could not reach PyPI — offline or blocked)")
+    elif self_info.get("update_available"):
+        print(f"  ->  {self_info['latest']} available")
+        print(f"  Upgrade: {self_info.get('upgrade_hint', 'pip install --upgrade ai-loadout')}")
+    else:
+        latest = self_info.get("latest") or "?"
+        print(f"  (latest on PyPI: {latest})")
+    comps = report["components"]
+    if not comps:
+        print("\nNo component upgrades detected. Run `loadout scan` if the twin is stale.")
+    else:
+        print(f"\n{len(comps)} component(s) can be upgraded:")
+        for c in comps:
+            print(
+                f"  {c['name']:<22} {c.get('current') or 'missing':<12} (min {c.get('minimum') or '?'})"
+            )
+    print(f"\nRollback Loadout: {report['rollback']['loadout']}")
+    return 0
+
+
+def cmd_benchmark(args: argparse.Namespace) -> int:
+    """Layer 12 - run a bounded local benchmark (non-destructive)."""
+
+    from .benchmark.runner import latest_benchmark, run_benchmark
+    from .core.state import load_state
+
+    if args.latest:
+        result = latest_benchmark()
+        if result is None:
+            print("No benchmark on record yet. Run:  loadout benchmark")
+            return 1
+        if args.json:
+            _print_json(result)
+            return 0
+        print(BANNER)
+        print(f"Latest benchmark (tier: {result['tier']['tier']})")
+        print(f"  CPU score:   {result['cpu']['score']}")
+        print(f"  Disk write:  {result['disk']['write_mbps']} MB/s")
+        print(f"  Disk read:   {result['disk']['read_mbps']} MB/s")
+        inf = result.get("inference") or {}
+        if inf.get("skipped"):
+            print(f"  Inference:   skipped ({inf.get('reason', 'n/a')})")
+        else:
+            print(f"  Inference:   {inf.get('tokens_per_sec')} tok/s")
+        return 0
+
+    store = load_state()
+    result = run_benchmark(store, fast=not args.full, bus=None)
+    if args.json:
+        _print_json(result)
+        return 0
+    print(BANNER)
+    print(f"Benchmark complete — recommended tier: {result['tier']['tier']}")
+    print(f"  {result['tier']['label']}")
+    print(f"  CPU score:   {result['cpu']['score']}")
+    print(
+        f"  Disk write:  {result['disk']['write_mbps']} MB/s  read: {result['disk']['read_mbps']} MB/s"
+    )
+    print(f"  Saved:       {result['path']}")
+    return 0
+
+
 def cmd_info(args: argparse.Namespace) -> int:
     """Show the last persisted digital-twin snapshot without rescanning."""
 
@@ -593,6 +693,21 @@ def build_parser() -> argparse.ArgumentParser:
         help="must be RESTORE to proceed",
     )
     p_restore.set_defaults(func=cmd_restore)
+
+    p_download = sub.add_parser("download", help="dry-run direct download plan (Layer 5)")
+    p_download.add_argument("url", help="HTTPS URL on an official host")
+    p_download.add_argument("--dest", help="optional destination path")
+    p_download.add_argument("--sha256", help="expected SHA256 hex digest")
+    p_download.set_defaults(func=cmd_download)
+
+    p_update = sub.add_parser("update", help="check for updates (Layer 16, read-only)")
+    p_update.add_argument("--check", action="store_true", help="check Loadout + components")
+    p_update.set_defaults(func=cmd_update)
+
+    p_bench = sub.add_parser("benchmark", help="run local benchmark (Layer 12)")
+    p_bench.add_argument("--latest", action="store_true", help="show last saved result")
+    p_bench.add_argument("--full", action="store_true", help="longer CPU/disk sample")
+    p_bench.set_defaults(func=cmd_benchmark)
 
     return parser
 
