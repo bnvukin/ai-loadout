@@ -14,8 +14,15 @@ When you save a config file from the dashboard (or via `apply_edit()` in
 This applies to all registered Config Center targets (Continue, VS Code/Cursor settings,
 Git, Docker, npm, pip, shell profile, Hugging Face token, …).
 
-**Restore:** manual — copy the `.bak` file back over the original path. There is no
-one-click restore UI yet.
+**Restore:** manual — copy the `.bak` file back over the original path, or use a global
+snapshot restore from the dashboard / `loadout restore <id> --confirm RESTORE`.
+
+### Global config snapshots (implemented — Layer 17)
+
+`loadout backup` (or the dashboard **Create backup** button) copies every discovered Config
+Center file into `~/.ai-loadout/backups/<YYYYMMDD-HHMMSS>/` plus a `manifest.json` recording
+PATH entries and env key names (values redacted). **Restore** overwrites originals and
+requires typing `RESTORE` in the dashboard (or `--confirm RESTORE` on the CLI).
 
 ### Install / upgrade actions
 
@@ -25,10 +32,9 @@ package manager or vendor uninstaller).
 
 ## What is NOT backed up today
 
-- Global "backup everything" or scheduled snapshots (**Layer 17 — planned**).
+- Scheduled / automatic snapshots.
 - Automatic rollback of failed installs.
-- Registry or system PATH snapshots (PATH is **read/refreshed** for detection only;
-  `src/ai_loadout/util/path_env.py`).
+- System environment variable restore (manifest records keys only; OS env is not overwritten).
 
 ## Recommendations
 

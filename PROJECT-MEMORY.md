@@ -145,6 +145,16 @@ env var values appearing trimmed with no easy copy.
   and Safety & trust (Layer 14 planned, not done).
 - Dashboard sidebar: unobtrusive disclaimer + links to Disclaimer, Privacy, Safety on GitHub.
 
+### Session 7 — 2026-07-27 (Wave A: Layers 14, 15, 17)
+- **Layer 14:** `ai_loadout.security` — URL allowlist, SHA256 verify/compute, trust posture
+  from deps/runtimes registries; `loadout security`, `GET /api/security`, Overview panel.
+- **Layer 15:** `system.json` writer, `diagnostics.zip` bundler with redaction;
+  `loadout diagnostics`, `POST /api/diagnostics`, Config Center diagnostics download UI.
+- **Layer 17:** global config snapshots + manifest; `loadout backup`/`restore`; dashboard
+  Backups panel with `RESTORE` confirmation gate (EXPERT).
+- 151 tests green locally; README/CHECKLIST/CHANGELOG/governance docs updated honestly
+  (Layer 5 download-manager will wire checksum checks; no env-var restore yet).
+
 ## Open questions / future
 
 - Real end-to-end install test in a disposable VM/sandbox per OS before recommending

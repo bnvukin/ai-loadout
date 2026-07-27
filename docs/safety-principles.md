@@ -26,9 +26,10 @@ These principles guide Loadout's design. Implementation status varies — see
 2. **Honest status** — README and docs match what is implemented; planned layers labeled.
 3. **Cross-platform** — Windows-first, macOS/Linux supported in detection and planning.
 4. **Testable** — parsers and planners tested with fixtures, not live toolchains.
-5. **Reversible config edits** — backup-first writes; global restore planned (Layer 17).
+5. **Reversible config edits** — backup-first writes; global snapshots + typed restore
+   (Layer 17).
 6. **Official sources** — installers built from winget/choco/brew/apt/npm/pip/Ollama IDs;
-   checksum verification planned (Layer 14).
+   trust posture report + URL allowlist + SHA256 for direct downloads (Layer 14).
 7. **Integrity** — no hidden telemetry; opt-in only if ever added (Layer 20).
 8. **Extensible layers** — each capability (deps, runtimes, health, config) plugs into the
    same component lifecycle.

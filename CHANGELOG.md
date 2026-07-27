@@ -113,6 +113,20 @@ All notable changes to Loadout are documented here. The format is based on
   pull preview, action-log modal, and config editor paths all have one-click copy + toast.
 
 ### Added
+- **Layer 14 — Security / integrity:** `ai_loadout.security` with official URL allowlist
+  (`is_official_source`), streaming SHA256 helpers (`compute_sha256`, `verify_sha256`),
+  known-hash table scaffold for direct downloads, and a per-component trust posture report.
+  Read-only `loadout security`, `GET /api/security`, and an Overview panel in the dashboard.
+- **Layer 15 — Logging & diagnostics:** `system.json` machine snapshot under
+  `~/.ai-loadout/logs/` (secrets redacted); `loadout diagnostics` and `POST /api/diagnostics`
+  bundle logs + state + versions into a timestamped, redacted zip; dashboard "Download
+  diagnostics" button with file download endpoint.
+- **Layer 17 — Global backup / restore:** `ai_loadout.backup` snapshots Config Center files
+  + PATH/env manifest under `~/.ai-loadout/backups/<ts>/`; `loadout backup` / `--list`;
+  `loadout restore <id> --confirm RESTORE`; dashboard Backups panel with create + typed
+  restore gate (`RESTORE`).
+
+### Added
 - **Governance & safety docs:** `DISCLAIMER.md`, `PRIVACY.md`, and `docs/` policies
   (confirmation, backup, logging, AI recommendations, safety principles); enhanced
   `SECURITY.md`, `THIRD_PARTY_NOTICES.md`, `CONTRIBUTING.md`; README honesty fixes for

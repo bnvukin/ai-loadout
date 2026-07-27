@@ -7,7 +7,7 @@ Legend: `[x]` done · `[~]` partial/functional-but-not-complete · `[ ]` not sta
 - [x] Governance & safety docs (DISCLAIMER, PRIVACY, `docs/*` policies, README + dashboard links)
 - [x] Core state engine (digital twin) + events + lifecycle
 - [x] CLI entry point (`loadout` / `ai-loadout`) — version/info/scan/deps/runtimes/models/
-  health/doctor/config/plan/dashboard all live (CLI stays read-only; mutations go via dashboard)
+  health/doctor/config/security/diagnostics/backup/plan/dashboard all live (CLI stays read-only; mutations go via dashboard)
 - [x] Phase 2 action engine (`ai_loadout.actions`) — build argv (win/mac/linux) + streaming
   runner (→ `install.log` + events) + single-component rescan + Layer 11 repairs + why/impact
 
@@ -26,10 +26,10 @@ Legend: `[x]` done · `[~]` partial/functional-but-not-complete · `[ ]` not sta
   dashboard "Fix now" buttons; PATH-dedupe & permission repairs pending
 - [ ] 12. Benchmark
 - [x] 13. AI doctor (`loadout doctor` — plain-language explain/fix/why/restart)
-- [ ] 14. Security (checksums, official URLs)
-- [ ] 15. Logging (install/benchmark logs, diagnostics.zip)
+- [x] 14. Security — official URL allowlist, SHA256 helpers, trust posture report (`loadout security`, `/api/security`, dashboard Overview panel)
+- [x] 15. Logging — `system.json` snapshot, redacted `diagnostics.zip` (`loadout diagnostics`, dashboard button)
 - [ ] 16. Update manager
-- [ ] 17. Backup / restore
+- [x] 17. Backup / restore — global snapshots + manifest; CLI create/list; dashboard restore with `RESTORE` gate
 - [x] 18. Profiles (`loadout plan` — curated loadouts + capabilities → dry-run plan)
 - [ ] 19. Offline support
 - [ ] 20. Telemetry (opt-in)

@@ -62,9 +62,10 @@ state. That is what turns "a bunch of scripts" into a platform you can extend.
   VS Code `settings.json`, `PATH`, and **every** environment variable) discovered,
   categorized, searchable. Open a file, edit it, and save — SAFE files save directly,
   ADVANCED/EXPERT require typing `CONFIRM`/`EDIT`, and every write is backed up first.
-- **Safety first** — official package-manager sources in command templates; config edits
-  trust-gated (`CONFIRM` / `EDIT`) with per-file backup. Checksum verification is **planned**
-  (Layer 14). See [Safety, privacy & legal](#safety-privacy--legal).
+- **Safety first** — official package-manager sources in command templates; trust posture
+  report (`loadout security`); SHA256 helpers for direct downloads; config edits
+  trust-gated (`CONFIRM` / `EDIT`) with per-file backup + global snapshots. See
+  [Safety, privacy & legal](#safety-privacy--legal).
 - **Profiles & Capabilities** — pick *ml-engineer* or *agentic-coder* instead of ticking
   50 tools; each expands transparently into the underlying components (`loadout plan`).
 
@@ -123,6 +124,10 @@ logged to `install.log`.
 | `loadout models` | Hardware-aware model comparison table with tok/s + RAM estimates |
 | `loadout health` / `loadout doctor` | Actionable issues, then plain-language explanations |
 | `loadout config [--show KEY \| --env \| --path]` | Config Center: files (redacted), env vars, PATH |
+| `loadout security` | Trust / integrity posture (official sources, package managers) |
+| `loadout diagnostics` | Bundle redacted logs + state into `~/.ai-loadout/diagnostics/` |
+| `loadout backup` / `loadout backup --list` | Create or list global config snapshots |
+| `loadout restore <id> --confirm RESTORE` | Restore a snapshot (destructive; dashboard preferred) |
 | `loadout plan --list` / `loadout plan --profile <key>` | Dry-run install plan for a profile |
 | `loadout dashboard` | Live web dashboard at `http://localhost:8421` |
 
@@ -201,18 +206,26 @@ works, not the vision.
 | **Phase 2 — actionable dashboard (fix/install/pull/edit from the browser)** | ✅ done |
 | Layer 11 — auto-repair (start Ollama/Docker, install/update fixes) | 🟡 partial |
 | Config editing from the dashboard (trust-gated + backup) | ✅ done |
-| Layers 5–9, 12, 14–17, 19–20 | ⏳ roadmap |
+| Layer 14 — security / integrity (`loadout security`, `/api/security`) | ✅ done |
+| Layer 15 — logging & diagnostics (`system.json`, `loadout diagnostics`) | ✅ done |
+| Layer 17 — global backup / restore (`loadout backup`, dashboard restore) | ✅ done |
+| Layers 5–9, 12, 16, 19–20 | ⏳ roadmap |
 
 ## Safety & trust
 
 - **Official sources** — install commands use vendor package IDs (winget, choco, brew, apt,
-  npm, pip, Ollama). **Checksum/signature verification is planned (Layer 14), not
-  implemented today.**
+  npm, pip, Ollama). **Trust posture:** `loadout security` and the dashboard Overview panel
+  show how each component is sourced; an official URL allowlist gates direct downloads;
+  SHA256 verification applies when Loadout fetches files directly (today installs go through
+  package managers, which verify their own signatures/hashes). Download-manager integration
+  (Layer 5) will call these checks automatically.
 - **Read-only CLI; confirm in dashboard** — `loadout scan` / `plan` / `config --show` do
   not mutate your system. Installs, repairs, model pulls, and config saves run from the
   dashboard only after you confirm (command preview + modal).
 - **Three trust levels for config saves** — 🟢 SAFE (save directly), 🟡 ADVANCED (type
   `CONFIRM`), 🔴 EXPERT (type `EDIT`); each overwrite backs up to `~/.ai-loadout/backups/`.
+  **Global snapshots** (`loadout backup` or dashboard) capture all Config Center files;
+  restore requires typing `RESTORE`.
 - **Local-first, no telemetry** — data stays on your machine; telemetry is not implemented
   (Layer 20 planned as opt-in only).
 
@@ -228,7 +241,7 @@ See [Safety, privacy & legal](#safety-privacy--legal) for policies and disclaime
 | [THIRD_PARTY_NOTICES.md](./THIRD_PARTY_NOTICES.md) | Tools Loadout automates; their licenses |
 | [docs/safety-principles.md](./docs/safety-principles.md) | Design principles (local-first, confirm before risk, …) |
 | [docs/confirmation-policy.md](./docs/confirmation-policy.md) | Trust levels + confirm modal behaviour |
-| [docs/backup-policy.md](./docs/backup-policy.md) | Per-file config backups (global restore planned) |
+| [docs/backup-policy.md](./docs/backup-policy.md) | Per-file config backups + global snapshots |
 | [docs/logging-policy.md](./docs/logging-policy.md) | `install.log`, events, redaction |
 | [docs/ai-recommendations.md](./docs/ai-recommendations.md) | Model/health advice is assistive, not guaranteed |
 

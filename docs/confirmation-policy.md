@@ -39,6 +39,11 @@ defined in `src/ai_loadout/config/edit.py` (`CONFIRM_TOKENS`):
 Every save **backs up** the existing file to `~/.ai-loadout/backups/<filename>.<timestamp>.bak`
 before writing (`backup_file()` in `edit.py`).
 
+## Global snapshot restore (EXPERT)
+
+Restoring a global backup requires typing **`RESTORE`** in the dashboard (or
+`loadout restore <id> --confirm RESTORE` on the CLI). This overwrites config files on disk.
+
 ## Planned: registry / hosts / certificates
 
 The lifecycle enum describes **EXPERT** as suitable for registry, hosts file, and
@@ -46,11 +51,12 @@ certificates. Loadout **does not edit the Windows registry or hosts file today**
 targets are added, they will require the `EDIT` token (or stronger) and be documented here
 before release.
 
-## Related layers (planned)
+## Related layers
 
-- **Layer 14 — Security:** checksum/signature verification before executing installers
-  (**not implemented**).
-- **Layer 17 — Backup / restore:** global backup/restore of all configs (**not implemented**;
-  only per-file backup on save exists today).
+- **Layer 14 — Security:** trust posture report + URL allowlist + SHA256 helpers
+  (`loadout security`, `/api/security`). Download-manager (Layer 5) will call checksum
+  checks before executing direct downloads.
+- **Layer 17 — Backup / restore:** global snapshots + typed `RESTORE` gate (see
+  [backup-policy.md](./backup-policy.md)).
 
 See [backup-policy.md](./backup-policy.md) and [CHECKLIST.md](../CHECKLIST.md).
