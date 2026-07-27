@@ -55,8 +55,6 @@ Legend: `[x]` done · `[~]` partial/functional-but-not-complete · `[ ]` not sta
 - [x] CI (lint + test matrix: windows/macos/linux, py3.9 + py3.12)
 - [x] Packaging — hatchling wheel/sdist, dashboard static in wheel, CI wheel smoke + `twine check`
 - [x] Release workflow — `.github/workflows/release.yml` (OIDC trusted publishing; TestPyPI + PyPI)
-- [~] Manual end-to-end verification — read-only paths + dashboard actions verified live on
-  Windows; winget upgrade→install fallback + PATH refresh for post-install detection added;
-  a **real** winget/brew/apt install + multi-GB model pull still need a disposable-VM run
-  before recommending the repo for one-click setup by others
+- [x] Fresh-install validation — `loadout self-test` + CI e2e matrix (win/mac/linux clean venv); manual VM runbook in `docs/e2e-validation.md`
+- [~] Manual mutating VM sign-off — automated CI covers install shape; real winget/brew/apt + large model pulls need disposable-VM checklist (see runbook)
 - [ ] PyPI first release — maintainer must configure trusted publisher + push `v0.1.0` tag

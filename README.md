@@ -7,10 +7,14 @@
 [![CI](https://github.com/bnvukin/ai-loadout/actions/workflows/ci.yml/badge.svg)](https://github.com/bnvukin/ai-loadout/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
 [![Python 3.9+](https://img.shields.io/badge/python-3.9%2B-blue.svg)](https://www.python.org/)
-[![Status: Alpha](https://img.shields.io/badge/status-alpha-orange.svg)](#project-status)
+[![Status: Alpha](https://img.shields.io/badge/status-v0.1.0%20alpha-orange.svg)](#project-status)
 [![PRs welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](./CONTRIBUTING.md)
 
 </div>
+
+**Status: v0.1.0 — all 20 layers + product pillars implemented.** Install via
+`pip install ai-loadout[dashboard]` (after PyPI publish) or bootstrap scripts; run everything
+from `loadout dashboard` on Windows, macOS, or Linux. See [Known limitations](#known-limitations).
 
 ---
 
@@ -122,6 +126,7 @@ pip install ai-loadout[dashboard]          # PyPI (after first release)
 
 # 2. Scan your machine (read-only)
 loadout scan
+loadout self-test                   # install confidence check (exit 0 = PASS)
 loadout plan --list
 loadout plan --profile ml-engineer        # dry-run install plan
 
@@ -158,6 +163,7 @@ logged to `install.log`.
 | `loadout runtimes` | Ollama / VS Code / Continue / agent CLIs + local models |
 | `loadout models` | Hardware-aware model comparison table with tok/s + RAM estimates |
 | `loadout health` / `loadout doctor` | Actionable issues, then plain-language explanations |
+| `loadout self-test` / `loadout doctor --self-test` | Install confidence check (imports, dashboard, scan; exit 1 on fail) |
 | `loadout config [--show KEY \| --env \| --path]` | Config Center: files (redacted), env vars, PATH |
 | `loadout security` | Trust / integrity posture (official sources, package managers) |
 | `loadout diagnostics` | Bundle redacted logs + state into `~/.ai-loadout/diagnostics/` |
@@ -274,9 +280,10 @@ works, not the vision.
 | Connections page | ✅ done (presence-only env detection; setup links) |
 | PATH dedupe + Loadout permission repairs | ✅ done (confirm + backup; Windows HKCU PATH write; Unix process PATH + guidance) |
 | Packaging / PyPI publish | ✅ ready ([RELEASING.md](./RELEASING.md); workflow + wheel smoke in CI; **PyPI upload is manual** — configure trusted publisher + push tag) |
-| Disposable-VM end-to-end install validation | ⏳ recommended before strangers use mutating installs |
+| Fresh-install validation | ✅ `loadout self-test` + CI e2e matrix (3 OS); manual VM runbook: [docs/e2e-validation.md](./docs/e2e-validation.md) |
+| Disposable-VM mutating install sign-off | ⏳ recommended — winget/brew/apt + large model pulls ([runbook](./docs/e2e-validation.md)) |
 
-### Honest partials (still true at 0.1.0)
+### Known limitations (v0.1.0)
 
 | Area | Reality |
 |------|---------|
@@ -286,6 +293,8 @@ works, not the vision.
 | Self-update | PyPI check + pip hint — no auto-upgrade |
 | Templates | Minimal starter stubs |
 | VS Code extensions | Requires `code` or `cursor` on PATH |
+| Offline cache | Reuses downloads — not full mirror |
+| PyPI | First publish needs trusted publisher + `v0.1.0` tag |
 
 ## Safety & trust
 

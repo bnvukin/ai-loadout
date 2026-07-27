@@ -6,6 +6,11 @@ All notable changes to Loadout are documented here. The format is based on
 
 ## [Unreleased]
 
+### Added
+- **Wave F — fresh-install validation:** `loadout self-test` (and `loadout doctor --self-test`)
+  read-only install confidence checks; CI e2e matrix (win/mac/linux clean venv + `--bind-http`);
+  [docs/e2e-validation.md](./docs/e2e-validation.md) manual VM runbook; README Known limitations.
+
 ## [0.1.0] - 2026-07-27
 
 First pip-installable alpha release. All 20 layers + product pillars implemented.

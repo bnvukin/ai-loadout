@@ -207,6 +207,15 @@ env var values appearing trimmed with no easy copy.
 - Clean venv wheel smoke verified locally: `loadout --help`, `loadout version`, static assets
   present under `site-packages/ai_loadout/dashboard/static/`.
 
+### Session 12 — 2026-07-27 (Wave F: fresh-install validation + sign-off)
+- **`loadout self-test`:** `ai_loadout.self_test` — imports, CLI, dashboard static + TestClient,
+  optional `--bind-http` ephemeral bind; scan/security/connections/offline probes; temp
+  `LOADOUT_HOME` for self-cleaning; non-zero exit on failure; `doctor --self-test` alias.
+- **CI:** e2e matrix job (ubuntu/windows/macos) — build wheel, clean venv, `self-test --bind-http`,
+  `loadout scan`; package job runs `self-test` on ubuntu.
+- **Docs:** `docs/e2e-validation.md` VM runbook; README Known limitations + status line; CHECKLIST
+  updated. 216+ tests green locally.
+
 ## Open questions / future
 
 - Real end-to-end install test in a disposable VM/sandbox per OS before recommending

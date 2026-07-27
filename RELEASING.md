@@ -47,9 +47,10 @@ python -m venv .wheel-smoke
 ```
 
 Expected: `loadout --help` lists all subcommands; `loadout version` prints `Loadout 0.1.0`;
-`static_dir()` resolves to a directory containing `index.html`, `app.js`, and `style.css`.
+`loadout self-test` exits 0; `static_dir()` contains `index.html`, `app.js`, and `style.css`.
 
-CI runs the same wheel smoke test on every push (`.github/workflows/ci.yml` → **Package** job).
+CI runs wheel smoke + **E2E (fresh wheel)** matrix on every push (`.github/workflows/ci.yml`).
+For manual disposable-VM validation see [docs/e2e-validation.md](./docs/e2e-validation.md).
 
 ## Publish to TestPyPI (manual dry run)
 
