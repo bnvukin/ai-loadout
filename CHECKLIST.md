@@ -45,8 +45,8 @@ Legend: `[x]` done · `[~]` partial/functional-but-not-complete · `[ ]` not sta
   worker) and SPA where every non-green item is fixable (install/upgrade/repair/pull/edit)
   with confirm + streaming logs + live badge updates; WS history replay fixed + HTTP
   polling fallback for action logs; **Updates** and **Benchmark** panels; direct download API
-- [~] Continuous health monitoring — live event stream + per-component rescan done; **optional periodic auto-rescan** (dashboard toggle, default off)
-- [~] Zero-interrupt install flow + profiles/capabilities wizard — profiles + dry-run planner + bootstrap scripts + per-item installs done; **batch profile install wizard** on dashboard
+- [x] Continuous health monitoring — live event stream + per-component rescan + **optional periodic auto-rescan** (dashboard toggle, default off)
+- [x] Zero-interrupt install flow + profiles/capabilities wizard — profiles + dry-run planner + bootstrap scripts + per-item installs + **batch profile install wizard** on dashboard
 - [x] Connections page — provider credential presence (no secrets) + setup guidance links
 
 ## Quality gates

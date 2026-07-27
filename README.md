@@ -254,8 +254,8 @@ works, not the vision.
   `CONFIRM`), 🔴 EXPERT (type `EDIT`); each overwrite backs up to `~/.ai-loadout/backups/`.
   **Global snapshots** (`loadout backup` or dashboard) capture all Config Center files;
   restore requires typing `RESTORE`.
-- **Local-first, no telemetry** — data stays on your machine; telemetry is not implemented
-  (Layer 20 planned as opt-in only).
+- **Local-first telemetry** — data stays on your machine. Telemetry is **opt-in and disabled
+  by default** (Layer 20); when enabled, events are stored locally only — no transmission endpoint yet.
 
 See [Safety, privacy & legal](#safety-privacy--legal) for policies and disclaimers.
 
@@ -264,7 +264,7 @@ See [Safety, privacy & legal](#safety-privacy--legal) for policies and disclaime
 | Document | Summary |
 |----------|---------|
 | [DISCLAIMER.md](./DISCLAIMER.md) | No warranty; what Loadout can change; third-party software |
-| [PRIVACY.md](./PRIVACY.md) | Local-first; no telemetry today; what is stored under `~/.ai-loadout/` |
+| [PRIVACY.md](./PRIVACY.md) | Local-first; opt-in telemetry (local-only); what is stored under `~/.ai-loadout/` |
 | [SECURITY.md](./SECURITY.md) | Vulnerability reporting; supported versions |
 | [THIRD_PARTY_NOTICES.md](./THIRD_PARTY_NOTICES.md) | Tools Loadout automates; their licenses |
 | [docs/safety-principles.md](./docs/safety-principles.md) | Design principles (local-first, confirm before risk, …) |

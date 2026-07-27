@@ -3,11 +3,23 @@
 from __future__ import annotations
 
 import os
+import sys
+
+import pytest
 
 from ai_loadout.config.path_repair import analyze_path_dedupe, dedupe_path_string
 
 
 def test_dedupe_preserves_order_cross_platform():
+    sep = os.pathsep
+    raw = sep.join(["/usr/bin", "/usr/local/bin", "/usr/bin", "/opt/x"])
+    out = dedupe_path_string(raw, case_insensitive=False)
+    parts = out.split(sep)
+    assert parts == ["/usr/bin", "/usr/local/bin", "/opt/x"]
+
+
+@pytest.mark.skipif(sys.platform != "win32", reason="Windows PATH case insensitivity")
+def test_dedupe_case_insensitive_windows():
     sep = os.pathsep
     raw = sep.join([r"C:\bin", r"C:\tools", r"c:\bin", r"D:\x"])
     out = dedupe_path_string(raw, case_insensitive=True)
