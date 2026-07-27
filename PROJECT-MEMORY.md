@@ -191,11 +191,13 @@ env var values appearing trimmed with no easy copy.
 - 207 tests green locally. Honest partials: telemetry stores locally only; offline cache is
   download reuse not full mirroring; monitor default off; PATH repair on Unix updates process
   PATH with shell-profile guidance (Windows writes HKCU).
+- **CI fix (`01a2fc1`):** `test_dedupe_preserves_order_cross_platform` used Windows paths with
+  `:` on Linux (pathsep splits `C:\bin` incorrectly). POSIX paths for cross-platform test;
+  Windows case-insensitivity gated with `skipif(win32)`. CI run all green.
 
 ## Open questions / future
 
 - Real end-to-end install test in a disposable VM/sandbox per OS before recommending
   mutating runs to strangers.
 - PyPI release + versioned tag so bootstrap can `pip install ai-loadout` (no git clone).
-- Batch profile install (run the whole `loadout plan` from the dashboard with live progress).
 - Elevation UX on Windows (some winget installs prompt UAC / need an elevated shell).
