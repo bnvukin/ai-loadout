@@ -52,3 +52,31 @@ jobs:
           python -m ai_loadout version
           python -m ai_loadout scan
           python -m ai_loadout plan --profile minimal --no-models
+
+  package:
+    name: Package (wheel smoke)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install build tools
+        run: python -m pip install --upgrade pip build twine
+      - name: Build sdist and wheel
+        run: python -m build
+      - name: Validate distributions
+        run: twine check dist/*
+      - name: Install wheel and smoke-test
+        run: |
+          pip install dist/*.whl[dashboard]
+          loadout --help
+          loadout version
+          python -c "
+          from ai_loadout.dashboard.assets import static_dir
+          from ai_loadout.dashboard.server import create_app
+          root = static_dir()
+          assert (root / 'index.html').is_file()
+          create_app()
+          print('wheel smoke ok')
+          "

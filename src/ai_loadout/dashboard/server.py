@@ -24,9 +24,10 @@ from fastapi.staticfiles import StaticFiles
 
 from .. import __version__
 from ..core.state import StateStore, load_state
+from .assets import static_dir
 from .orchestrator import Orchestrator
 
-STATIC_DIR = Path(__file__).parent / "static"
+STATIC_DIR = static_dir()
 
 
 def create_app(store: StateStore | None = None, orchestrator: Orchestrator | None = None):

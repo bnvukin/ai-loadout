@@ -9,7 +9,7 @@ description = "One command to turn any Windows, macOS, or Linux machine into a p
 readme = "README.md"
 requires-python = ">=3.9"
 license = { file = "LICENSE" }
-authors = [{ name = "Loadout contributors" }]
+authors = [{ name = "bnvukin", email = "bnvukin@users.noreply.github.com" }]
 keywords = [
   "ai", "workstation", "installer", "ollama", "llm", "bootstrap",
   "developer-tools", "setup", "dashboard", "devtools", "mcp",
@@ -23,6 +23,10 @@ classifiers = [
   "Operating System :: POSIX :: Linux",
   "Operating System :: MacOS",
   "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
   "Topic :: Software Development :: Build Tools",
   "Topic :: System :: Installation/Setup",
 ]
@@ -46,14 +50,18 @@ dev = [
   "pytest-asyncio>=0.23",
   "httpx>=0.27",
   "ruff>=0.4",
+  "build>=1.0",
+  "twine>=5.0",
   "fastapi>=0.110",
   "uvicorn[standard]>=0.27",
 ]
 
 [project.urls]
 Homepage = "https://github.com/bnvukin/ai-loadout"
+Documentation = "https://github.com/bnvukin/ai-loadout#readme"
 Repository = "https://github.com/bnvukin/ai-loadout"
 Issues = "https://github.com/bnvukin/ai-loadout/issues"
+Changelog = "https://github.com/bnvukin/ai-loadout/blob/main/CHANGELOG.md"
 
 [project.scripts]
 ai-loadout = "ai_loadout.cli:main"
@@ -64,6 +72,15 @@ path = "src/ai_loadout/__init__.py"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/ai_loadout"]
+
+# Explicitly ship the dashboard SPA (index.html, app.js, style.css) in the wheel.
+[tool.hatch.build.targets.wheel.force-include]
+"src/ai_loadout/dashboard/static" = "ai_loadout/dashboard/static"
+
+[tool.hatch.build.targets.sdist]
+include = [
+  "/src/ai_loadout/dashboard/static",
+]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
@@ -84,3 +101,4 @@ ignore = ["E501"]
 # breaks there even with ``from __future__ import annotations``.
 [tool.ruff.lint.per-file-ignores]
 "src/ai_loadout/dashboard/server.py" = ["UP045"]
+
