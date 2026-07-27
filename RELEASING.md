@@ -83,7 +83,8 @@ loadout dashboard
 ## What ships in the wheel
 
 - Python package `ai_loadout` (all layers)
-- Dashboard SPA: `ai_loadout/dashboard/static/` (`index.html`, `app.js`, `style.css`)
+- Dashboard SPA: `ai_loadout/dashboard/static/` (`index.html`, `app.js`, `style.css`) — included
+  automatically by hatchling as part of the package tree (no separate `package-data` needed)
 - Console scripts: `loadout` and `ai-loadout` → `ai_loadout.cli:main`
 - Templates are inline Python strings (no extra package data needed)
 

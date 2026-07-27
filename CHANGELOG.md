@@ -11,7 +11,7 @@ All notable changes to Loadout are documented here. The format is based on
 First pip-installable alpha release. All 20 layers + product pillars implemented.
 
 ### Added
-- **Packaging:** hatchling build with dashboard SPA shipped via `force-include`;
+- **Packaging:** hatchling build; dashboard SPA ships as part of the package tree;
   console scripts `loadout` / `ai-loadout`; version `0.1.0` from `__init__.__version__`.
 - **CI:** wheel smoke job (build → `twine check` → install wheel → CLI + static asset verify).
 - **Release:** `.github/workflows/release.yml` — OIDC trusted publishing to PyPI / TestPyPI.

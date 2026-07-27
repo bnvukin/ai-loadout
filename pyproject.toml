@@ -73,15 +73,6 @@ path = "src/ai_loadout/__init__.py"
 [tool.hatch.build.targets.wheel]
 packages = ["src/ai_loadout"]
 
-# Explicitly ship the dashboard SPA (index.html, app.js, style.css) in the wheel.
-[tool.hatch.build.targets.wheel.force-include]
-"src/ai_loadout/dashboard/static" = "ai_loadout/dashboard/static"
-
-[tool.hatch.build.targets.sdist]
-include = [
-  "/src/ai_loadout/dashboard/static",
-]
-
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "-ra"
