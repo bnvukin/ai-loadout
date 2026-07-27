@@ -6,6 +6,25 @@ All notable changes to Loadout are documented here. The format is based on
 
 ## [Unreleased]
 
+## [0.1.0] - 2026-07-27
+
+First pip-installable alpha release. All 20 layers + product pillars implemented.
+
+### Added
+- **Packaging:** hatchling build with dashboard SPA shipped via `force-include`;
+  console scripts `loadout` / `ai-loadout`; version `0.1.0` from `__init__.__version__`.
+- **CI:** wheel smoke job (build → `twine check` → install wheel → CLI + static asset verify).
+- **Release:** `.github/workflows/release.yml` — OIDC trusted publishing to PyPI / TestPyPI.
+- **Docs:** [RELEASING.md](./RELEASING.md), README Install + Quickstart sections.
+
+### Notes (honest partials at 0.1.0)
+- Download throttle deferred; offline cache reuses prior downloads only (not full mirroring).
+- Telemetry is opt-in, local-only — **no transmission endpoint**.
+- Inference benchmark needs a running Ollama; self-update is check + pip hint only.
+- Project templates are minimal starter stubs; extension install needs `code`/`cursor` on PATH.
+
+## [Unreleased — historical]
+
 ### Added
 - Project scaffolding: MIT license, packaging (`pyproject.toml`), contributor docs,
   security policy, third-party notices, `.gitignore`/`.editorconfig`.

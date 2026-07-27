@@ -195,9 +195,21 @@ env var values appearing trimmed with no easy copy.
   `:` on Linux (pathsep splits `C:\bin` incorrectly). POSIX paths for cross-platform test;
   Windows case-insensitivity gated with `skipif(win32)`. CI run all green.
 
+### Session 11 — 2026-07-27 (Wave E: packaging + PyPI release readiness)
+- **Packaging:** audited `pyproject.toml` (hatchling, `psutil` core + `[dashboard]` extra);
+  explicit `force-include` for `dashboard/static/`; `dashboard/assets.py` for wheel-safe path
+  resolution; `tests/test_packaging.py`.
+- **CI:** new **Package (wheel smoke)** job — `python -m build`, `twine check`, install wheel,
+  verify CLI + static bundle.
+- **Release:** `.github/workflows/release.yml` — tag `v*` or workflow_dispatch → OIDC publish
+  (environments `pypi` / `testpypi`; no API tokens in repo).
+- **Docs:** `RELEASING.md`, README Install/Quickstart, CHANGELOG `[0.1.0]`.
+- Clean venv wheel smoke verified locally: `loadout --help`, `loadout version`, static assets
+  present under `site-packages/ai_loadout/dashboard/static/`.
+
 ## Open questions / future
 
 - Real end-to-end install test in a disposable VM/sandbox per OS before recommending
   mutating runs to strangers.
-- PyPI release + versioned tag so bootstrap can `pip install ai-loadout` (no git clone).
+- **First PyPI publish:** configure trusted publisher on PyPI + push `v0.1.0` tag (see RELEASING.md).
 - Elevation UX on Windows (some winget installs prompt UAC / need an elevated shell).

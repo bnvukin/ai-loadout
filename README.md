@@ -69,44 +69,79 @@ state. That is what turns "a bunch of scripts" into a platform you can extend.
 - **Profiles & Capabilities** — pick *ml-engineer* or *agentic-coder* instead of ticking
   50 tools; each expands transparently into the underlying components (`loadout plan`).
 
-## Quick start
+## Install
 
-> ⚠️ **Alpha.** Read [Project status](#project-status) for exactly what is implemented
-> today. Nothing mutating runs without your confirmation, and `--dry-run` shows the full
-> plan without changing anything.
+**From PyPI** (once published — see [RELEASING.md](./RELEASING.md) for maintainer steps):
 
 ```bash
-# 1. Get the code
+pip install ai-loadout[dashboard]
+loadout --version
+```
+
+The `[dashboard]` extra installs FastAPI + Uvicorn so `loadout dashboard` works. Core-only
+(`pip install ai-loadout`) is enough for scan/plan/health/doctor and all read-only CLI commands.
+
+**From source** (development):
+
+```bash
 git clone https://github.com/bnvukin/ai-loadout.git
 cd ai-loadout
+pip install -e ".[dashboard,dev]"
+```
 
-# 2. Install (Python 3.9+)
-pip install -e ".[dashboard]"
+**From a built wheel** (local verify before release):
 
-# 3. Scan your machine (read-only) and see what Loadout would do
+```bash
+python -m pip install build twine
+python -m build
+twine check dist/*
+pip install dist/ai_loadout-*.whl[dashboard]
+loadout --help
+```
+
+**Bare machine?** Use the bootstrap scripts — they install Python (winget / Homebrew / apt),
+then Loadout, then run the first scan:
+
+```powershell
+./bootstrap.ps1 -Dashboard     # Windows
+```
+
+```bash
+./bootstrap.sh --dashboard     # macOS / Linux
+```
+
+## Quick start
+
+> ⚠️ **Alpha (v0.1.0).** All 20 layers are implemented; read [Project status](#project-status)
+> for honest partials. Nothing mutating runs without your confirmation from the dashboard.
+
+```bash
+# 1. Install
+pip install ai-loadout[dashboard]          # PyPI (after first release)
+# — or — pip install -e ".[dashboard]"   # from a git clone
+
+# 2. Scan your machine (read-only)
 loadout scan
 loadout plan --list
-loadout plan --profile ml-engineer          # dry-run install plan for this machine
+loadout plan --profile ml-engineer        # dry-run install plan
 
-# 4. Open the live dashboard
+# 3. Open the live dashboard — install/fix from the browser with confirm + logs
+loadout dashboard
+# → http://localhost:8421 — Rescan, Profiles → Install profile, Connections, Settings
+```
+
+<details>
+<summary>Alternative: clone from GitHub (same as before)</summary>
+
+```bash
+git clone https://github.com/bnvukin/ai-loadout.git
+cd ai-loadout
+pip install -e ".[dashboard]"
+loadout scan
 loadout dashboard
 ```
 
-Prefer one command from a bare machine? The bootstrappers install Python for you (via
-winget / Homebrew / apt), install Loadout, and run the first scan. They print every
-action and support a preview flag:
-
-```powershell
-# Windows (PowerShell)
-./bootstrap.ps1 -DryRun        # preview
-./bootstrap.ps1 -Dashboard     # install + open the dashboard
-```
-
-```bash
-# macOS / Linux
-./bootstrap.sh --dry-run       # preview
-./bootstrap.sh --dashboard     # install + open the dashboard
-```
+</details>
 
 ### Commands available today
 
@@ -220,7 +255,7 @@ works, not the vision.
 | Bootstrap scripts (`bootstrap.ps1` / `bootstrap.sh`) | ✅ done |
 | **Phase 2 — action engine (install/upgrade/pull/repair + streaming logs)** | ✅ done |
 | **Phase 2 — actionable dashboard (fix/install/pull/edit from the browser)** | ✅ done |
-| Layer 11 — auto-repair (start Ollama/Docker, install/update fixes) | 🟡 partial |
+| Layer 11 — auto-repair (Ollama/Docker, PATH dedupe, Loadout perms) | ✅ done |
 | Config editing from the dashboard (trust-gated + backup) | ✅ done |
 | Layer 14 — security / integrity (`loadout security`, `/api/security`) | ✅ done |
 | Layer 15 — logging & diagnostics (`system.json`, `loadout diagnostics`) | ✅ done |
@@ -238,7 +273,19 @@ works, not the vision.
 | Batch profile install wizard | ✅ done (dashboard Profiles panel; sequential install + streaming) |
 | Connections page | ✅ done (presence-only env detection; setup links) |
 | PATH dedupe + Loadout permission repairs | ✅ done (confirm + backup; Windows HKCU PATH write; Unix process PATH + guidance) |
-| Packaging / PyPI publish | ⏳ roadmap |
+| Packaging / PyPI publish | ✅ ready ([RELEASING.md](./RELEASING.md); workflow + wheel smoke in CI; **PyPI upload is manual** — configure trusted publisher + push tag) |
+| Disposable-VM end-to-end install validation | ⏳ recommended before strangers use mutating installs |
+
+### Honest partials (still true at 0.1.0)
+
+| Area | Reality |
+|------|---------|
+| Download manager | No throttle; offline cache reuses prior downloads only |
+| Telemetry | Opt-in, local-only — no transmission |
+| Benchmark inference | Needs Ollama running locally |
+| Self-update | PyPI check + pip hint — no auto-upgrade |
+| Templates | Minimal starter stubs |
+| VS Code extensions | Requires `code` or `cursor` on PATH |
 
 ## Safety & trust
 
