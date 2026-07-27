@@ -7,14 +7,14 @@ import time
 import urllib.error
 import urllib.request
 from pathlib import Path
-from typing import Callable
+from typing import Callable, Optional
 from urllib.parse import unquote, urlparse
 
 from ..core import paths
 from ..security.checksum import verify_sha256
 from ..security.sources import is_official_source
 
-ProgressFn = Callable[[int, int | None, str], None]
+ProgressFn = Callable[[int, Optional[int], str], None]
 UrlOpenFn = Callable[..., object]
 
 _CHUNK = 64 * 1024
