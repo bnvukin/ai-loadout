@@ -182,6 +182,120 @@ def create_app(store: StateStore | None = None, orchestrator: Orchestrator | Non
         )
         return started
 
+    @app.get("/api/vscode/preview")
+    def vscode_preview(editor: str = "") -> dict:
+        from ..vscode.config import preview as vscode_preview_fn
+
+        ed = editor or None
+        return vscode_preview_fn(store, editor=ed)
+
+    @app.post("/api/vscode/apply")
+    def vscode_apply(payload: Optional[dict] = None) -> dict:
+        from ..vscode.config import apply as vscode_apply_fn
+        from ..vscode.config import preview as vscode_preview_fn
+
+        payload = payload or {}
+        if not payload.get("confirm"):
+            return {
+                "dry_run": True,
+                "preview": vscode_preview_fn(store, editor=payload.get("editor")),
+            }
+        result = orch.launch_action(
+            "vscode:apply",
+            lambda: vscode_apply_fn(
+                store,
+                editor=payload.get("editor"),
+                include_optional=bool(payload.get("optional")),
+            ),
+        )
+        return {"dry_run": False, **result}
+
+    @app.post("/api/vscode/extensions/{ext_id}/install")
+    def vscode_extension_install(ext_id: str, payload: Optional[dict] = None) -> dict:
+        from ..vscode.extensions import extension_install_command, run_extension_install
+
+        payload = payload or {}
+        cmd = extension_install_command(ext_id)
+        if payload.get("dry_run") or not payload.get("confirm"):
+            return {"dry_run": True, "command": cmd}
+        started = orch.launch_action(
+            f"vscode:ext:{ext_id}",
+            lambda: run_extension_install(ext_id, store),
+        )
+        return {"dry_run": False, "command": cmd, **started}
+
+    @app.get("/api/continue/preview")
+    def continue_preview() -> dict:
+        from ..continue_cfg.builder import preview as continue_preview_fn
+
+        return continue_preview_fn(store)
+
+    @app.post("/api/continue/apply")
+    def continue_apply(payload: Optional[dict] = None) -> dict:
+        from ..continue_cfg.builder import apply as continue_apply_fn
+
+        payload = payload or {}
+        if not payload.get("confirm"):
+            from ..continue_cfg.builder import preview as continue_preview_fn
+
+            return {"dry_run": True, "preview": continue_preview_fn(store)}
+        result = orch.launch_action("continue:apply", lambda: continue_apply_fn(store))
+        return {"dry_run": False, **result}
+
+    @app.get("/api/agents/preview")
+    def agents_preview() -> dict:
+        from ..agents.config import preview as agents_preview_fn
+
+        return agents_preview_fn(store)
+
+    @app.post("/api/agents/apply")
+    def agents_apply(payload: Optional[dict] = None) -> dict:
+        from ..agents.config import apply as agents_apply_fn
+
+        payload = payload or {}
+        if not payload.get("confirm"):
+            from ..agents.config import preview as agents_preview_fn
+
+            return {"dry_run": True, "preview": agents_preview_fn(store)}
+        result = orch.launch_action(
+            "agents:apply",
+            lambda: agents_apply_fn(store, workspace=payload.get("workspace", ".")),
+        )
+        return {"dry_run": False, **result}
+
+    @app.get("/api/templates")
+    def templates_list() -> dict:
+        from ..templates.registry import list_templates
+
+        return {"templates": list_templates()}
+
+    @app.get("/api/templates/{key}/preview")
+    def templates_preview(key: str, name: str = "my-project") -> dict:
+        from ..templates.registry import preview_template
+
+        return preview_template(key, name)
+
+    @app.post("/api/templates/{key}/scaffold")
+    def templates_scaffold(key: str, payload: Optional[dict] = None) -> dict:
+        from ..templates.registry import scaffold_template
+
+        payload = payload or {}
+        proj_name = payload.get("name") or "my-project"
+        target = payload.get("dir") or proj_name
+        if not payload.get("confirm"):
+            from ..templates.registry import preview_template
+
+            return {
+                "dry_run": True,
+                "preview": preview_template(key, proj_name),
+                "target": target,
+            }
+        result = scaffold_template(key, proj_name, target, force=bool(payload.get("force")))
+        if not result.get("ok"):
+            raise HTTPException(status_code=400, detail=result)
+        store.bus.info(f"Template {key} scaffolded to {target}", kind="config", target="templates")
+        return result
+
     @app.post("/api/backups")
     def backups_create() -> dict:
         from ..backup.snapshot import create_snapshot

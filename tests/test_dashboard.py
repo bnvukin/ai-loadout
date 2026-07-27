@@ -297,3 +297,23 @@ def test_api_backups_create_and_restore_gated(loadout_home, tmp_path, monkeypatc
     )
     assert ok.status_code == 200
     assert ok.json()["file_count"] >= 1
+
+
+def test_api_vscode_continue_agents_templates():
+    client = TestClient(create_app(_store()))
+    vs = client.get("/api/vscode/preview").json()
+    assert vs.get("ok") is True
+    dry = client.post("/api/vscode/apply", json={}).json()
+    assert dry["dry_run"] is True
+
+    cont = client.get("/api/continue/preview").json()
+    assert cont.get("ok") is True
+    assert client.post("/api/continue/apply", json={}).json()["dry_run"] is True
+
+    agents = client.get("/api/agents/preview").json()
+    assert agents.get("ok") is True
+
+    tpls = client.get("/api/templates").json()
+    assert len(tpls["templates"]) >= 5
+    prev = client.get("/api/templates/fastapi/preview", params={"name": "demo"}).json()
+    assert prev.get("ok") is True

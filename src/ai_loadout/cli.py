@@ -592,6 +592,117 @@ def cmd_benchmark(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_vscode(args: argparse.Namespace) -> int:
+    """Layer 6 - preview VS Code / Cursor settings merge (read-only)."""
+
+    from .core.state import load_state
+    from .vscode.config import preview
+
+    store = load_state()
+    result = preview(store, editor=args.editor)
+    if args.json:
+        _print_json(result)
+        return 0 if result.get("ok") else 1
+    print(BANNER)
+    if not result.get("ok"):
+        print(result.get("reason", "preview failed"))
+        return 1
+    print(f"Editor: {result['editor']}  |  path: {result['settings_path']}")
+    print(f"Keys to add/merge: {', '.join(result['keys_added']) or 'none (already set)'}")
+    print(f"\nRecommended extensions ({len(result['extensions'])}):")
+    for ext in result["extensions"]:
+        opt = " (optional)" if ext.get("optional") else ""
+        print(f"  - {ext['id']:<40} {ext['name']}{opt}")
+    print("\nApply from the dashboard (backs up settings.json first).")
+    return 0
+
+
+def cmd_continue(args: argparse.Namespace) -> int:
+    """Layer 7 - preview Continue config generation (read-only)."""
+
+    from .continue_cfg.builder import preview
+    from .core.state import load_state
+
+    store = load_state()
+    result = preview(store)
+    if args.json:
+        _print_json(result)
+        return 0 if result.get("ok") else 1
+    print(BANNER)
+    print(f"Format: {result.get('format')} schema {result.get('schema')}")
+    print(f"Path:   {result.get('path')}")
+    print(result.get("note", ""))
+    print("\n--- preview ---\n")
+    print(result.get("content", ""))
+    return 0
+
+
+def cmd_agents(args: argparse.Namespace) -> int:
+    """Layer 8 - preview agent/MCP scaffold (read-only)."""
+
+    from .agents.config import preview
+    from .core.state import load_state
+
+    store = load_state()
+    result = preview(store)
+    if args.json:
+        _print_json(result)
+        return 0 if result.get("ok") else 1
+    print(BANNER)
+    print(f"Detected agents: {len(result.get('agents', []))}")
+    for a in result.get("agents", []):
+        print(f"  - {a.get('name')} ({a.get('key')})")
+    print(f"\nMCP config: {result.get('mcp_path')}")
+    print(result.get("note", ""))
+    return 0
+
+
+def cmd_new(args: argparse.Namespace) -> int:
+    """Layer 9 - scaffold a project template into a new directory."""
+
+    from .templates.registry import list_templates, preview_template, scaffold_template
+
+    if args.list:
+        items = list_templates()
+        if args.json:
+            _print_json({"templates": items})
+            return 0
+        print(BANNER)
+        for t in items:
+            print(f"  {t['key']:<15} {t['name']} ({t['files']} files)")
+            print(f"  {'':<15} {t['description']}\n")
+        return 0
+
+    if not args.template or not args.name:
+        print("Usage:  loadout new <template> <name> [--dir PATH] [--force]")
+        print("        loadout new --list")
+        return 2
+
+    if args.preview:
+        result = preview_template(args.template, args.name)
+        if args.json:
+            _print_json(result)
+            return 0 if result.get("ok") else 1
+        print(BANNER)
+        for f in result.get("files", []):
+            print(f"  {f['path']}  ({f['bytes']} bytes)")
+        return 0
+
+    target = args.dir or args.name
+    result = scaffold_template(args.template, args.name, target, force=args.force)
+    if args.json:
+        _print_json(result)
+        return 0 if result.get("ok") else 1
+    if not result.get("ok"):
+        print(result.get("reason", "scaffold failed"), file=sys.stderr)
+        return 1
+    print(BANNER)
+    print(f"Created {result['file_count']} file(s) in {result['target']}")
+    for path in result.get("written", []):
+        print(f"  - {path}")
+    return 0
+
+
 def cmd_info(args: argparse.Namespace) -> int:
     """Show the last persisted digital-twin snapshot without rescanning."""
 
@@ -708,6 +819,28 @@ def build_parser() -> argparse.ArgumentParser:
     p_bench.add_argument("--latest", action="store_true", help="show last saved result")
     p_bench.add_argument("--full", action="store_true", help="longer CPU/disk sample")
     p_bench.set_defaults(func=cmd_benchmark)
+
+    p_vscode = sub.add_parser("vscode", help="preview VS Code settings merge (Layer 6)")
+    p_vscode.add_argument("--preview", action="store_true", help="show merged settings")
+    p_vscode.add_argument("--editor", choices=("vscode", "cursor"), default=None)
+    p_vscode.set_defaults(func=cmd_vscode)
+
+    p_continue = sub.add_parser("continue", help="preview Continue config (Layer 7)")
+    p_continue.add_argument("--preview", action="store_true", help="show generated config")
+    p_continue.set_defaults(func=cmd_continue)
+
+    p_agents = sub.add_parser("agents", help="preview agent/MCP scaffold (Layer 8)")
+    p_agents.add_argument("--preview", action="store_true", help="show MCP + folders plan")
+    p_agents.set_defaults(func=cmd_agents)
+
+    p_new = sub.add_parser("new", help="scaffold a project template (Layer 9)")
+    p_new.add_argument("template", nargs="?", help="template key (see --list)")
+    p_new.add_argument("name", nargs="?", help="project name")
+    p_new.add_argument("--dir", help="target directory (default: ./<name>)")
+    p_new.add_argument("--list", action="store_true", help="list templates")
+    p_new.add_argument("--preview", action="store_true", help="show file list only")
+    p_new.add_argument("--force", action="store_true", help="overwrite existing files")
+    p_new.set_defaults(func=cmd_new)
 
     return parser
 

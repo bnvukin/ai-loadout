@@ -34,6 +34,10 @@
     config: ["Config Center", "Open, edit and save config files. Browse every environment variable."],
     updates: ["Updates", "Loadout self-update status and component upgrades."],
     benchmark: ["Benchmark", "CPU, disk, and inference measurements for this machine."],
+    vscode: ["VS Code", "Recommended settings and extensions for AI development."],
+    continue: ["Continue", "Auto-generate Continue config from detected models."],
+    agents: ["Agents / MCP", "Starter MCP config and agent workspace folders."],
+    templates: ["Templates", "Scaffold new AI project starters."],
     activity: ["Activity", "Live event stream from the orchestrator."],
   };
 
@@ -564,6 +568,90 @@
       </div>`;
   }
 
+  async function renderVscode() {
+    const host = $("#view-vscode");
+    const data = await api("/api/vscode/preview");
+    if (!data.ok) {
+      host.innerHTML = `<div class="card"><div class="empty">${esc(data.reason || "Unavailable")}</div></div>`;
+      return;
+    }
+    const extRows = (data.extensions || [])
+      .map(
+        (e) => `<tr><td class="mono">${esc(e.id)}</td><td>${esc(e.name)}</td><td class="muted tiny">${esc(e.reason || "")}</td>
+        <td class="right"><button class="btn sm" data-act="install-ext" data-id="${esc(e.id)}">Install</button></td></tr>`
+      )
+      .join("");
+    host.innerHTML = `
+      <div class="card">
+        <div class="card-head"><h3>${esc(data.editor)} settings</h3>
+          <button class="btn sm" data-act="apply-vscode">Apply settings</button></div>
+        <p class="muted tiny">Path: <span class="mono">${esc(data.settings_path)}</span></p>
+        <p class="muted tiny">Keys to merge: ${esc((data.keys_added || []).join(", ") || "none")}</p>
+        <pre class="pathbox mono" style="max-height:200px;overflow:auto">${esc(data.settings_content || "")}</pre>
+      </div>
+      <div class="card" style="margin-top:16px">
+        <h3>Recommended extensions</h3>
+        <table><thead><tr><th>ID</th><th>Name</th><th>Why</th><th></th></tr></thead>
+        <tbody>${extRows}</tbody></table>
+        <p class="muted tiny">Requires <code>code</code> or <code>cursor</code> on PATH.</p>
+      </div>`;
+  }
+
+  async function renderContinue() {
+    const host = $("#view-continue");
+    const data = await api("/api/continue/preview");
+    host.innerHTML = `
+      <div class="card">
+        <div class="card-head"><h3>Continue config (${esc(data.schema || "v1")})</h3>
+          <button class="btn sm" data-act="apply-continue">Apply</button></div>
+        <p class="muted tiny">${esc(data.note || "")}</p>
+        <p class="muted tiny">Path: <span class="mono">${esc(data.path || "")}</span></p>
+        <pre class="pathbox mono" style="max-height:320px;overflow:auto">${esc(data.content || "")}</pre>
+      </div>`;
+  }
+
+  async function renderAgents() {
+    const host = $("#view-agents");
+    const data = await api("/api/agents/preview");
+    const agents = (data.agents || [])
+      .map((a) => `<li>${esc(a.name)} (${esc(a.key)})</li>`)
+      .join("");
+    const folders = (data.folders || [])
+      .map((f) => `<li class="mono">${esc(f.path)} — ${esc(f.action)}</li>`)
+      .join("");
+    host.innerHTML = `
+      <div class="card">
+        <div class="card-head"><h3>Agent CLIs</h3>
+          <button class="btn sm" data-act="apply-agents">Apply scaffold</button></div>
+        <ul>${agents || "<li class='muted'>None detected yet — run Rescan.</li>"}</ul>
+        <p class="muted tiny">${esc(data.note || "")}</p>
+      </div>
+      <div class="grid cols-2" style="margin-top:16px">
+        <div class="card"><h3>MCP config preview</h3>
+          <pre class="pathbox mono" style="max-height:200px;overflow:auto">${esc(data.mcp_content || "")}</pre></div>
+        <div class="card"><h3>Folders</h3><ul class="mono tiny">${folders}</ul></div>
+      </div>`;
+  }
+
+  async function renderTemplates() {
+    const host = $("#view-templates");
+    const data = await api("/api/templates");
+    const rows = (data.templates || [])
+      .map(
+        (t) => `<tr><td><strong>${esc(t.name)}</strong><div class="muted tiny">${esc(t.description)}</div></td>
+        <td class="mono">${esc(t.key)}</td><td>${t.files}</td>
+        <td class="right"><button class="btn sm" data-act="scaffold-template" data-key="${esc(t.key)}">Create</button></td></tr>`
+      )
+      .join("");
+    host.innerHTML = `
+      <div class="card">
+        <h3>Project templates</h3>
+        <table><thead><tr><th>Template</th><th>Key</th><th>Files</th><th></th></tr></thead>
+        <tbody>${rows || '<tr><td colspan="4" class="empty">No templates.</td></tr>'}</tbody></table>
+      </div>
+      <div id="tpl-result" class="muted tiny" style="margin-top:10px"></div>`;
+  }
+
   const RENDERERS = {
     overview: renderOverview,
     components: renderComponents,
@@ -571,6 +659,10 @@
     config: renderConfig,
     updates: renderUpdates,
     benchmark: renderBenchmark,
+    vscode: renderVscode,
+    continue: renderContinue,
+    agents: renderAgents,
+    templates: renderTemplates,
     activity: renderActivity,
   };
 
@@ -721,6 +813,104 @@
     if (!res.ok || res.json.started === false) {
       toast(res.json.busy ? "Another action is running." : "Could not start benchmark.", "warning");
     }
+  }
+
+  async function applyVscode() {
+    openModal(
+      "Apply VS Code settings",
+      "<p>Merges recommended AI-dev defaults into settings.json. Your existing keys are preserved; a backup is created first.</p>",
+      `<button class="btn ghost" data-act="modal-close">Cancel</button>
+       <button class="btn" id="confirm-vscode">Apply settings</button>`
+    );
+    const run = $("#confirm-vscode");
+    if (run)
+      run.addEventListener("click", async () => {
+        closeModal();
+        openActionLog("vscode", "Apply VS Code settings");
+        await post("/api/vscode/apply", { confirm: true });
+      });
+  }
+
+  async function installExtension(id) {
+    const dry = await post(`/api/vscode/extensions/${encodeURIComponent(id)}/install`, {});
+    const cmd = dry.json.command || {};
+    openModal(
+      `Install ${id}`,
+      cmd.ok
+        ? `<div class="cmd-label">Command:</div>${cmdBlock(cmd.display)}`
+        : `<div class="banner warn">${esc(cmd.reason || "Cannot install")}</div>`,
+      cmd.ok
+        ? `<button class="btn ghost" data-act="modal-close">Cancel</button><button class="btn" id="confirm-ext">Install</button>`
+        : `<button class="btn ghost" data-act="modal-close">Close</button>`
+    );
+    const run = $("#confirm-ext");
+    if (run)
+      run.addEventListener("click", async () => {
+        closeModal();
+        openActionLog("vscode", `extension ${id}`);
+        await post(`/api/vscode/extensions/${encodeURIComponent(id)}/install`, { confirm: true });
+      });
+  }
+
+  async function applyContinue() {
+    openModal(
+      "Apply Continue config",
+      "<p>Writes merged config to ~/.continue/. Secrets stay as env placeholders. Backup first.</p>",
+      `<button class="btn ghost" data-act="modal-close">Cancel</button>
+       <button class="btn" id="confirm-cont">Apply</button>`
+    );
+    const run = $("#confirm-cont");
+    if (run)
+      run.addEventListener("click", async () => {
+        closeModal();
+        openActionLog("continue", "Apply Continue config");
+        await post("/api/continue/apply", { confirm: true });
+      });
+  }
+
+  async function applyAgents() {
+    openModal(
+      "Apply agent / MCP scaffold",
+      "<p>Creates starter MCP config and workspace folders. Backup if MCP file exists.</p>",
+      `<button class="btn ghost" data-act="modal-close">Cancel</button>
+       <button class="btn" id="confirm-agents">Apply</button>`
+    );
+    const run = $("#confirm-agents");
+    if (run)
+      run.addEventListener("click", async () => {
+        closeModal();
+        openActionLog("agents", "Agent scaffold");
+        await post("/api/agents/apply", { confirm: true });
+      });
+  }
+
+  async function startScaffoldTemplate(key) {
+    const name = prompt("Project name:", "my-ai-project");
+    if (!name) return;
+    const dir = prompt("Target directory:", name);
+    if (!dir) return;
+    const dry = await post(`/api/templates/${encodeURIComponent(key)}/scaffold`, { name, dir });
+    openModal(
+      `Create ${key} project`,
+      `<p>Scaffold <strong>${esc(name)}</strong> into <code>${esc(dir)}</code></p>`,
+      `<button class="btn ghost" data-act="modal-close">Cancel</button>
+       <button class="btn" id="confirm-tpl">Create</button>`
+    );
+    const run = $("#confirm-tpl");
+    if (run)
+      run.addEventListener("click", async () => {
+        const res = await post(`/api/templates/${encodeURIComponent(key)}/scaffold`, {
+          name,
+          dir,
+          confirm: true,
+        });
+        closeModal();
+        if (res.ok) {
+          toast(`Created in ${dir}`, "success");
+          const host = $("#tpl-result");
+          if (host) host.textContent = (res.json.written || []).join(", ");
+        } else toast("Scaffold failed (dir not empty?).", "warning");
+      });
   }
 
   async function toggleWhy(key, btn) {
@@ -952,6 +1142,11 @@
     if (act === "download-diagnostics") return downloadDiagnostics();
     if (act === "refresh-updates") return refreshUpdates();
     if (act === "run-benchmark") return runBenchmark();
+    if (act === "apply-vscode") return applyVscode();
+    if (act === "install-ext") return installExtension(el.dataset.id);
+    if (act === "apply-continue") return applyContinue();
+    if (act === "apply-agents") return applyAgents();
+    if (act === "scaffold-template") return startScaffoldTemplate(el.dataset.key);
   }
 
   // -- boot ---------------------------------------------------------------------
