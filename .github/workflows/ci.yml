@@ -69,7 +69,8 @@ jobs:
         run: twine check dist/*
       - name: Install wheel and smoke-test
         run: |
-          pip install dist/*.whl[dashboard]
+          WHEEL=$(ls dist/*.whl | head -1)
+          pip install "${WHEEL}[dashboard]"
           loadout --help
           loadout version
           python -c "
