@@ -97,6 +97,67 @@ def create_app(store: StateStore | None = None, orchestrator: Orchestrator | Non
 
         return {"known": inspect_env(), "all": inspect_all_env(), "path": path_summary()}
 
+    @app.get("/api/security")
+    def security_report() -> dict:
+        from ..security.posture import build_trust_posture
+
+        return build_trust_posture(store)
+
+    @app.post("/api/diagnostics")
+    def diagnostics_bundle() -> dict:
+        from ..diagnostics.bundle import create_diagnostics_bundle
+
+        return create_diagnostics_bundle(store)
+
+    @app.get("/api/diagnostics/{filename}")
+    def diagnostics_download(filename: str):
+        from ..core import paths
+
+        safe = Path(filename).name
+        if not safe.startswith("diagnostics-") or not safe.endswith(".zip"):
+            raise HTTPException(status_code=404, detail="not found")
+        target = paths.diagnostics_dir() / safe
+        if not target.is_file():
+            raise HTTPException(status_code=404, detail="not found")
+        return FileResponse(str(target), filename=safe, media_type="application/zip")
+
+    @app.get("/api/backups")
+    def backups_list() -> dict:
+        from ..backup.snapshot import list_snapshots
+
+        return {"snapshots": list_snapshots()}
+
+    @app.post("/api/backups")
+    def backups_create() -> dict:
+        from ..backup.snapshot import create_snapshot
+
+        result = create_snapshot(store)
+        store.bus.info(
+            "Config snapshot created",
+            kind="backup",
+            target=result["id"],
+        )
+        return result
+
+    @app.post("/api/backups/{snapshot_id}/restore")
+    def backups_restore(snapshot_id: str, payload: Optional[dict] = None) -> dict:
+        from ..backup.snapshot import RESTORE_CONFIRM, RestoreError, restore_snapshot
+
+        payload = payload or {}
+        try:
+            result = restore_snapshot(snapshot_id, confirm=payload.get("confirm"))
+        except RestoreError as exc:
+            raise HTTPException(
+                status_code=400,
+                detail={"error": str(exc), "required": RESTORE_CONFIRM},
+            ) from exc
+        store.bus.warning(
+            f"Restored snapshot {snapshot_id}",
+            kind="backup",
+            target=snapshot_id,
+        )
+        return result
+
     @app.get("/api/events")
     def events(after: int = 0) -> dict:
         return {

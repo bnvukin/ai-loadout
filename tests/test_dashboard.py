@@ -219,3 +219,54 @@ def test_api_config_save_success(monkeypatch):
     client = TestClient(create_app(_store()))
     body = client.post("/api/config/continue", json={"content": "hi"}).json()
     assert body["key"] == "continue"
+
+
+def test_api_security_report():
+    client = TestClient(create_app(_store()))
+    body = client.get("/api/security").json()
+    assert body["summary"]["total"] > 0
+    assert body["policy"]["url_allowlist"] is True
+
+
+def test_api_diagnostics_creates_zip(loadout_home):
+    client = TestClient(create_app(_store()))
+    body = client.post("/api/diagnostics").json()
+    assert body["filename"].startswith("diagnostics-")
+    dl = client.get(f"/api/diagnostics/{body['filename']}")
+    assert dl.status_code == 200
+    assert dl.headers.get("content-type", "").startswith("application/")
+
+
+def test_api_backups_create_and_restore_gated(loadout_home, tmp_path, monkeypatch):
+    fake_home = tmp_path / "userhome"
+    fake_home.mkdir()
+    cfg_dir = fake_home / ".continue"
+    cfg_dir.mkdir()
+    (cfg_dir / "config.json").write_text("{}", encoding="utf-8")
+
+    def fake_ph():
+        return {
+            "home": str(fake_home),
+            "appdata": str(fake_home / "AppData" / "Roaming"),
+            "localappdata": str(fake_home / "AppData" / "Local"),
+            "xdg_config": str(fake_home / ".config"),
+            "documents": str(fake_home / "Documents"),
+        }
+
+    monkeypatch.setattr("ai_loadout.config.discover._placeholders", fake_ph)
+
+    client = TestClient(create_app(_store()))
+    created = client.post("/api/backups").json()
+    assert created["id"]
+    listed = client.get("/api/backups").json()
+    assert any(s["id"] == created["id"] for s in listed["snapshots"])
+
+    blocked = client.post(f"/api/backups/{created['id']}/restore", json={})
+    assert blocked.status_code == 400
+
+    ok = client.post(
+        f"/api/backups/{created['id']}/restore",
+        json={"confirm": "RESTORE"},
+    )
+    assert ok.status_code == 200
+    assert ok.json()["file_count"] >= 1

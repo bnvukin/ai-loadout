@@ -148,12 +148,24 @@
   // -- views --------------------------------------------------------------------
   async function renderOverview() {
     const host = $("#view-overview");
-    const [snap, health] = await Promise.all([api("/api/state"), api("/api/health")]);
+    const [snap, health, security] = await Promise.all([
+      api("/api/state"),
+      api("/api/health"),
+      api("/api/security"),
+    ]);
     const hw = snap.hardware || {};
     const c = health.counts || {};
     const ringColor =
       health.percent >= 80 ? "var(--green)" : health.percent >= 50 ? "var(--yellow)" : "var(--red)";
     const issues = (health.issues || []).map(issueCard).join("");
+    const sec = security.summary || {};
+    const secRows = (security.components || [])
+      .slice(0, 6)
+      .map(
+        (item) =>
+          `<tr><td>${esc(item.name)}</td><td class="muted">${esc(item.manager || item.method)}</td><td class="tiny muted">${esc(item.integrity)}</td></tr>`
+      )
+      .join("");
 
     host.innerHTML = `
       <div class="grid cols-2">
@@ -185,6 +197,18 @@
             <div class="k">Internet</div><div class="v">${hw.internet ? "online" : "offline"}</div>
           </div>
         </div>
+      </div>
+      <div class="card" style="margin-top:16px">
+        <div class="card-head">
+          <h3>Security / integrity</h3>
+          <span class="trust safe">${sec.package_manager || 0} via package manager</span>
+        </div>
+        <p class="muted tiny" style="margin:0 0 10px">
+          Preferred manager: <strong>${esc(security.preferred_manager || "none")}</strong>.
+          Official URL allowlist active; direct downloads would be SHA256-checked.
+        </p>
+        <table><thead><tr><th>Component</th><th>Source</th><th>Verification</th></tr></thead>
+        <tbody>${secRows || '<tr><td colspan="3" class="empty">Run a scan to populate components.</td></tr>'}</tbody></table>
       </div>
       <div class="card" style="margin-top:16px">
         <h3>Issues (${(health.issues || []).length})</h3>
@@ -326,7 +350,11 @@
 
   async function renderConfig() {
     const host = $("#view-config");
-    const [data, envData] = await Promise.all([api("/api/config"), api("/api/env")]);
+    const [data, envData, backups] = await Promise.all([
+      api("/api/config"),
+      api("/api/env"),
+      api("/api/backups"),
+    ]);
     const cfgRows = (data.configs || [])
       .map(
         (cf) => `<tr>
@@ -345,6 +373,17 @@
       .join("");
 
     const p = data.path || {};
+    const snapRows = (backups.snapshots || [])
+      .map(
+        (s) => `<tr>
+        <td class="mono">${esc(s.id)}</td>
+        <td>${s.file_count || 0}</td>
+        <td class="right">
+          <button class="btn sm ghost" data-act="restore-backup" data-id="${esc(s.id)}">Restore</button>
+        </td>
+      </tr>`
+      )
+      .join("");
     host.innerHTML = `
       <div class="card">
         <h3>Config files</h3>
@@ -379,6 +418,25 @@
                 </div>`
             )
             .join("")}</div>
+        </div>
+      </div>
+      <div class="grid cols-2" style="margin-top:16px">
+        <div class="card">
+          <div class="card-head">
+            <h3>Backups</h3>
+            <button class="btn sm" data-act="create-backup">Create backup</button>
+          </div>
+          <p class="muted tiny">Global snapshots of Config Center files. Restore overwrites originals.</p>
+          <table><thead><tr><th>Snapshot</th><th>Files</th><th></th></tr></thead>
+          <tbody>${snapRows || '<tr><td colspan="3" class="empty">No snapshots yet.</td></tr>'}</tbody></table>
+        </div>
+        <div class="card">
+          <h3>Diagnostics</h3>
+          <p class="muted tiny" style="margin-bottom:12px">
+            Bundle logs, state, and tool versions into a redacted zip for troubleshooting.
+          </p>
+          <button class="btn" data-act="download-diagnostics">Download diagnostics</button>
+          <div id="diag-result" class="muted tiny" style="margin-top:10px"></div>
         </div>
       </div>`;
     store._env = envData;
@@ -520,6 +578,58 @@
     openActionLog(key || fix, label);
     const res = await post("/api/repair", { action: fix, target: key || null });
     if (res.json && res.json.guidance) appendActionLog(res.json.guidance);
+  }
+
+  async function createBackup() {
+    toast("Creating snapshot...");
+    const res = await post("/api/backups", {});
+    if (res.ok) {
+      toast(`Backup ${res.json.id} created (${res.json.file_count} files).`, "success");
+      if (store.view === "config") refresh();
+    } else {
+      toast("Backup failed.", "warning");
+    }
+  }
+
+  async function startRestoreBackup(id) {
+    const body = `<p class="lead">Restore snapshot <code>${esc(id)}</code>?</p>
+      <div class="banner warn">This overwrites current config files with the snapshot copies.</div>
+      <div class="confirm-gate"><label>Type <code>RESTORE</code> to proceed (EXPERT):</label>
+      <input id="gate" placeholder="RESTORE" autocomplete="off" /></div>`;
+    const foot = `<button class="btn ghost" data-act="modal-close">Cancel</button>
+      <button class="btn warn" id="confirm-restore">Restore now</button>`;
+    openModal("Restore backup", body, foot);
+    const run = $("#confirm-restore");
+    if (run)
+      run.addEventListener("click", async () => {
+        const token = ($("#gate").value || "").trim();
+        const res = await post(`/api/backups/${encodeURIComponent(id)}/restore`, {
+          confirm: token,
+        });
+        if (res.ok) {
+          toast(`Restored ${res.json.file_count} file(s).`, "success");
+          closeModal();
+          if (store.view === "config") refresh();
+        } else {
+          const d = res.json.detail || res.json;
+          toast((d && d.error) || "Restore blocked.", "warning");
+        }
+      });
+  }
+
+  async function downloadDiagnostics() {
+    toast("Building diagnostics bundle...");
+    const res = await post("/api/diagnostics", {});
+    const host = $("#diag-result");
+    if (!res.ok) {
+      toast("Diagnostics failed.", "warning");
+      return;
+    }
+    const j = res.json;
+    const link = `/api/diagnostics/${encodeURIComponent(j.filename)}`;
+    if (host)
+      host.innerHTML = `Saved: <a href="${esc(link)}" download>${esc(j.filename)}</a> (${esc(j.path)})`;
+    toast("Diagnostics ready.", "success");
   }
 
   async function toggleWhy(key, btn) {
@@ -746,6 +856,9 @@
     if (act === "refresh-models") return refreshModels();
     if (act === "repair") return startRepair(el.dataset.fix, el.dataset.key);
     if (act === "edit-config") return openConfigEditor(el.dataset.cfg);
+    if (act === "create-backup") return createBackup();
+    if (act === "restore-backup") return startRestoreBackup(el.dataset.id);
+    if (act === "download-diagnostics") return downloadDiagnostics();
   }
 
   // -- boot ---------------------------------------------------------------------

@@ -10,6 +10,7 @@ from __future__ import annotations
 import argparse
 import json
 import sys
+import time
 
 from . import __version__
 
@@ -387,6 +388,110 @@ def cmd_dashboard(args: argparse.Namespace) -> int:
     return serve(host=args.host, port=args.port, open_browser=not args.no_browser)
 
 
+def cmd_security(args: argparse.Namespace) -> int:
+    """Layer 14 - print the trust / integrity posture (read-only)."""
+
+    from .core.state import load_state
+    from .security.posture import build_trust_posture
+
+    store = load_state()
+    report = build_trust_posture(store)
+    if args.json:
+        _print_json(report)
+        return 0
+    print(BANNER)
+    s = report["summary"]
+    mgr = report.get("preferred_manager") or "none"
+    print(f"Platform: {report['platform']}  |  preferred manager: {mgr}")
+    print(
+        f"Installable components: {s['total']} total — "
+        f"{s['package_manager']} via package manager, "
+        f"{s['manual']} manual, {s['detect_only']} detect-only"
+    )
+    print("\nComponent integrity:")
+    for c in report["components"]:
+        via = c["manager"] or c["method"]
+        print(f"  {c['name']:<24} {via:<18} {c['integrity']}")
+    print("\nPolicy: official URL allowlist active; SHA256 for direct downloads when used.")
+    return 0
+
+
+def cmd_diagnostics(args: argparse.Namespace) -> int:
+    """Layer 15 - bundle logs + state into a redacted diagnostics zip (read-only)."""
+
+    from .core.state import load_state
+    from .diagnostics.bundle import create_diagnostics_bundle
+
+    store = load_state()
+    result = create_diagnostics_bundle(store)
+    if args.json:
+        _print_json(result)
+        return 0
+    print(BANNER)
+    print(f"Diagnostics bundle: {result['path']}")
+    print(f"Members ({len(result['members'])}): {', '.join(result['members'])}")
+    print("Secrets and API keys are redacted. Share only with people you trust.")
+    return 0
+
+
+def cmd_backup(args: argparse.Namespace) -> int:
+    """Layer 17 - create or list global config snapshots (read-only)."""
+
+    from .backup.snapshot import create_snapshot, list_snapshots
+
+    if args.list:
+        snaps = list_snapshots()
+        if args.json:
+            _print_json({"snapshots": snaps})
+            return 0
+        print(BANNER)
+        if not snaps:
+            print("No global snapshots yet. Run:  loadout backup")
+            return 0
+        print("Global config snapshots:\n")
+        for s in snaps:
+            ts = s.get("timestamp")
+            when = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(ts)) if ts else "?"
+            print(f"  {s['id']}  ({s['file_count']} files)  {when}")
+        return 0
+
+    from .core.state import load_state
+
+    store = load_state()
+    result = create_snapshot(store)
+    if args.json:
+        _print_json(result)
+        return 0
+    print(BANNER)
+    print(f"Snapshot created: {result['id']}  ({result['file_count']} files)")
+    print(f"Location: {result['path']}")
+    print("Restore from the dashboard (requires typing RESTORE).")
+    return 0
+
+
+def cmd_restore(args: argparse.Namespace) -> int:
+    """Layer 17 - restore a global snapshot (destructive; requires --confirm RESTORE)."""
+
+    from .backup.snapshot import RestoreError, restore_snapshot
+
+    if not args.id:
+        print("Usage:  loadout restore <snapshot-id> --confirm RESTORE")
+        return 2
+    try:
+        result = restore_snapshot(args.id, confirm=args.confirm)
+    except RestoreError as exc:
+        print(f"Restore blocked: {exc}", file=sys.stderr)
+        return 1
+    if args.json:
+        _print_json(result)
+        return 0
+    print(BANNER)
+    print(f"Restored snapshot {result['id']} ({result['file_count']} files).")
+    for item in result["restored"]:
+        print(f"  - {item['key']}: {item['path']}")
+    return 0
+
+
 def cmd_info(args: argparse.Namespace) -> int:
     """Show the last persisted digital-twin snapshot without rescanning."""
 
@@ -469,6 +574,25 @@ def build_parser() -> argparse.ArgumentParser:
     p_plan.add_argument("--no-models", action="store_true", help="skip model download steps")
     p_plan.add_argument("--list", action="store_true", help="list available profiles")
     p_plan.set_defaults(func=cmd_plan)
+
+    p_security = sub.add_parser("security", help="trust / integrity posture (Layer 14)")
+    p_security.set_defaults(func=cmd_security)
+
+    p_diag = sub.add_parser("diagnostics", help="bundle redacted logs + state (Layer 15)")
+    p_diag.set_defaults(func=cmd_diagnostics)
+
+    p_backup = sub.add_parser("backup", help="create/list global config snapshots (Layer 17)")
+    p_backup.add_argument("--list", action="store_true", help="list existing snapshots")
+    p_backup.set_defaults(func=cmd_backup)
+
+    p_restore = sub.add_parser("restore", help="restore a snapshot (destructive; Layer 17)")
+    p_restore.add_argument("id", nargs="?", help="snapshot id (timestamp folder name)")
+    p_restore.add_argument(
+        "--confirm",
+        metavar="TOKEN",
+        help="must be RESTORE to proceed",
+    )
+    p_restore.set_defaults(func=cmd_restore)
 
     return parser
 
