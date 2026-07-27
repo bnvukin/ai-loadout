@@ -13,10 +13,12 @@ import threading
 import time
 
 from ..core.events import EventLevel
+from ..core.settings import load_settings
 from ..core.state import StateStore
 
 # Ordered so later tasks can rely on earlier ones (health reads what scan/deps found).
 DEFAULT_TASKS: tuple[str, ...] = ("scan", "deps", "runtimes", "config", "health")
+DEFAULT_MONITOR_INTERVAL = 300
 
 
 class Orchestrator:
@@ -32,6 +34,10 @@ class Orchestrator:
         self._action_thread: threading.Thread | None = None
         self._current_action: str | None = None
         self._action_log: dict[str, dict] = {}
+        self._monitor_thread: threading.Thread | None = None
+        self._monitor_stop = threading.Event()
+        self._monitor_enabled = False
+        self._monitor_interval = DEFAULT_MONITOR_INTERVAL
 
     # -- task table -------------------------------------------------------------------
     def _fn(self, name: str):
@@ -70,7 +76,55 @@ class Orchestrator:
                 "tasks": {name: dict(state) for name, state in self._status.items()},
                 "action_running": self.action_running(),
                 "current_action": self._current_action,
+                "monitor": self.monitor_status(),
             }
+
+    # -- periodic monitor (optional auto-rescan) ------------------------------------
+    def monitor_status(self) -> dict:
+        with self._lock:
+            alive = self._monitor_thread is not None and self._monitor_thread.is_alive()
+            return {
+                "enabled": self._monitor_enabled and alive,
+                "interval_sec": self._monitor_interval,
+                "running": alive,
+            }
+
+    def configure_monitor(self, *, enabled: bool, interval_sec: int | None = None) -> dict:
+        """Enable/disable periodic rescans. Default is off until explicitly enabled."""
+
+        from ..core.settings import save_settings
+
+        interval = max(60, int(interval_sec or self._monitor_interval or DEFAULT_MONITOR_INTERVAL))
+        save_settings({"monitor_enabled": enabled, "monitor_interval_sec": interval})
+        with self._lock:
+            self._monitor_enabled = enabled
+            self._monitor_interval = interval
+            if not enabled:
+                self._monitor_stop.set()
+                return self.monitor_status()
+            self._monitor_stop.clear()
+            if self._monitor_thread is None or not self._monitor_thread.is_alive():
+                self._monitor_thread = threading.Thread(
+                    target=self._monitor_loop,
+                    name="loadout-monitor",
+                    daemon=True,
+                )
+                self._monitor_thread.start()
+        return self.monitor_status()
+
+    def _monitor_loop(self) -> None:
+        while not self._monitor_stop.is_set():
+            settings = load_settings()
+            if not settings.get("monitor_enabled"):
+                self._monitor_enabled = False
+                break
+            if not self.is_running() and not self.action_running():
+                try:
+                    self.run_blocking(list(DEFAULT_TASKS))
+                except Exception:
+                    pass
+            if self._monitor_stop.wait(timeout=self._monitor_interval):
+                break
 
     # -- background actions (Phase 2) -------------------------------------------------
     def action_running(self) -> bool:

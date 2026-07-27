@@ -11,6 +11,8 @@ from typing import Callable, Optional
 from urllib.parse import unquote, urlparse
 
 from ..core import paths
+from ..offline.cache import lookup_cache, record_in_cache
+from ..offline.gate import offline_block
 from ..security.checksum import verify_sha256
 from ..security.sources import is_official_source
 
@@ -44,6 +46,7 @@ def plan_download(
     target = Path(dest) if dest else _default_dest(url)
     part = target.with_suffix(target.suffix + ".part")
     resume_at = part.stat().st_size if part.is_file() else 0
+    cached = lookup_cache(url)
     return {
         "ok": official,
         "url": url,
@@ -52,6 +55,8 @@ def plan_download(
         "part_path": str(part),
         "resume_bytes": resume_at,
         "verify_sha256": expected_sha256,
+        "cache_hit": cached is not None,
+        "cache_path": cached.get("path") if cached else None,
         "reason": None if official else "URL is not on the official-source allowlist",
     }
 
@@ -92,10 +97,35 @@ def download_file(
 ) -> dict:
     """Download ``url`` to ``dest`` with resume, retry, and optional hash verify."""
 
+    block = offline_block("download")
+    if block:
+        raise DownloadError(block["reason"])
+
     if not is_official_source(url):
         raise DownloadError("refusing download: URL is not on the official-source allowlist")
 
     target = Path(dest) if dest else _default_dest(url)
+    cached = lookup_cache(url)
+    if cached and Path(cached["path"]).is_file():
+        import shutil
+
+        target.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(cached["path"], target)
+        if expected_sha256 and not verify_sha256(target, expected_sha256):
+            target.unlink(missing_ok=True)
+            raise DownloadError("cached file failed checksum verification")
+        result = {
+            "ok": True,
+            "url": url,
+            "dest": str(target),
+            "bytes": target.stat().st_size,
+            "verified": bool(expected_sha256),
+            "attempts": 0,
+            "from_cache": True,
+        }
+        if on_progress:
+            on_progress(result["bytes"], result["bytes"], "served from cache")
+        return result
     target.parent.mkdir(parents=True, exist_ok=True)
     part = target.with_suffix(target.suffix + ".part")
     opener = urlopen_fn or urllib.request.urlopen
@@ -141,6 +171,7 @@ def download_file(
                 raise DownloadError("checksum verification failed — file rejected")
 
             os.replace(part, target)
+            record_in_cache(url, target, sha256=expected_sha256)
             result = {
                 "ok": True,
                 "url": url,

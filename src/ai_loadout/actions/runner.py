@@ -21,6 +21,7 @@ from datetime import datetime, timezone
 from ..core import paths
 from ..core.lifecycle import ComponentState, Health
 from ..core.models import ModelEntry
+from ..offline.gate import offline_block
 from .commands import ActionCommand, build_command
 
 # Generous ceilings -- real installs and model pulls are slow; we still want a hard stop.
@@ -72,6 +73,20 @@ def run_action(
     if dry_run:
         store.bus.info(f"Dry run -- would execute: {cmd.display}", source="action", target=key)
         return result
+
+    if action == "pull":
+        block = offline_block("pull")
+        if block:
+            store.bus.warning(block["reason"], source="action", target=key)
+            result.update(block)
+            return result
+
+    if action in ("install", "upgrade"):
+        block = offline_block(action)
+        if block:
+            store.bus.warning(block["reason"], source="action", target=key)
+            result.update(block)
+            return result
 
     if cmd.kind == "model":
         return _run_model_pull(store, cmd, result, timeout)

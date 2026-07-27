@@ -703,6 +703,51 @@ def cmd_new(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_offline(args: argparse.Namespace) -> int:
+    """Layer 19 - connectivity + offline capabilities report (read-only)."""
+
+    from .offline.report import build_offline_report
+
+    report = build_offline_report()
+    if args.json:
+        _print_json(report)
+        return 0
+    print(BANNER)
+    online = report.get("online")
+    print(f"Connectivity: {'online' if online else 'offline'}")
+    conn = report.get("connectivity", {})
+    if conn.get("reason"):
+        print(f"  Reason: {conn['reason']}")
+    print(f"Cache entries: {report.get('cache_count', 0)}")
+    print("\nWorks offline:")
+    for item in report.get("works_offline", []):
+        print(f"  - {item}")
+    print("\nNeeds network:")
+    for item in report.get("needs_network", []):
+        print(f"  - {item}")
+    return 0
+
+
+def cmd_telemetry(args: argparse.Namespace) -> int:
+    """Layer 20 - telemetry opt-in status (read-only)."""
+
+    from .telemetry.collector import preview_payload, status
+
+    result = preview_payload() if args.preview else status()
+    if args.json:
+        _print_json(result)
+        return 0
+    print(BANNER)
+    print(f"Telemetry: {'enabled' if result.get('enabled') else 'disabled (default)'}")
+    print(f"Transmission: {'none (local-only)' if not result.get('transmission') else 'yes'}")
+    print(result.get("note", ""))
+    if args.preview and result.get("sample"):
+        print("\nSample payload fields:")
+        for key, value in result["sample"].items():
+            print(f"  {key}: {value}")
+    return 0
+
+
 def cmd_info(args: argparse.Namespace) -> int:
     """Show the last persisted digital-twin snapshot without rescanning."""
 
@@ -841,6 +886,14 @@ def build_parser() -> argparse.ArgumentParser:
     p_new.add_argument("--preview", action="store_true", help="show file list only")
     p_new.add_argument("--force", action="store_true", help="overwrite existing files")
     p_new.set_defaults(func=cmd_new)
+
+    p_offline = sub.add_parser("offline", help="connectivity + offline cache report (Layer 19)")
+    p_offline.set_defaults(func=cmd_offline)
+
+    p_telemetry = sub.add_parser("telemetry", help="telemetry opt-in status (Layer 20)")
+    p_telemetry.add_argument("--status", action="store_true", help="show telemetry status")
+    p_telemetry.add_argument("--preview", action="store_true", help="preview collected fields")
+    p_telemetry.set_defaults(func=cmd_telemetry)
 
     return parser
 

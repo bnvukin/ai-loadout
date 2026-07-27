@@ -38,11 +38,15 @@
     continue: ["Continue", "Auto-generate Continue config from detected models."],
     agents: ["Agents / MCP", "Starter MCP config and agent workspace folders."],
     templates: ["Templates", "Scaffold new AI project starters."],
+    profiles: ["Profiles", "Install an entire curated loadout in one go."],
+    connections: ["Connections", "Which provider credentials are detected (presence only)."],
+    settings: ["Settings & Privacy", "Telemetry opt-in, auto-rescan monitor, and privacy links."],
     activity: ["Activity", "Live event stream from the orchestrator."],
   };
 
   const store = {
     view: "overview",
+    online: true,
     events: [],
     seen: new Set(),
     lastEventId: 0,
@@ -52,6 +56,30 @@
     envFilter: "",
     action: null, // { target, logEl, doneEl }
   };
+
+  function netTip() {
+    return store.online
+      ? "Network available"
+      : "Offline — downloads, model pulls, and installs are disabled";
+  }
+
+  function updateNetBadge() {
+    const el = $("#net-badge");
+    if (!el) return;
+    el.textContent = store.online ? "online" : "offline";
+    el.className = store.online ? "chip done" : "chip error";
+    el.title = netTip();
+  }
+
+  async function pollConnectivity() {
+    try {
+      const c = await api("/api/connectivity");
+      store.online = !!c.online;
+    } catch (_) {
+      store.online = false;
+    }
+    updateNetBadge();
+  }
 
   function badge(health) {
     const h = health || "gray";
@@ -636,20 +664,103 @@
   async function renderTemplates() {
     const host = $("#view-templates");
     const data = await api("/api/templates");
-    const rows = (data.templates || [])
-      .map(
-        (t) => `<tr><td><strong>${esc(t.name)}</strong><div class="muted tiny">${esc(t.description)}</div></td>
-        <td class="mono">${esc(t.key)}</td><td>${t.files}</td>
-        <td class="right"><button class="btn sm" data-act="scaffold-template" data-key="${esc(t.key)}">Create</button></td></tr>`
-      )
-      .join("");
-    host.innerHTML = `
-      <div class="card">
-        <h3>Project templates</h3>
-        <table><thead><tr><th>Template</th><th>Key</th><th>Files</th><th></th></tr></thead>
-        <tbody>${rows || '<tr><td colspan="4" class="empty">No templates.</td></tr>'}</tbody></table>
-      </div>
-      <div id="tpl-result" class="muted tiny" style="margin-top:10px"></div>`;
+    host.innerHTML = `<div class="panel"><h3>Project templates</h3>
+      <div class="grid">${(data.templates || [])
+        .map(
+          (t) => `<div class="card"><strong>${esc(t.name)}</strong>
+            <p class="muted tiny">${esc(t.description)}</p>
+            <button class="btn sm" data-act="scaffold-template" data-key="${esc(t.key)}">Create project</button></div>`
+        )
+        .join("")}</div>
+      <pre class="mono tiny" id="tpl-result"></pre></div>`;
+  }
+
+  async function renderProfiles() {
+    const host = $("#view-profiles");
+    const list = await api("/api/profiles");
+    host.innerHTML = `<div class="panel"><h3>Profile install wizard</h3>
+      <p class="muted">Preview a full install plan, confirm once, then steps run sequentially with streaming logs.</p>
+      <div class="grid">${(list.profiles || [])
+        .map(
+          (p) => `<div class="card"><strong>${esc(p.name)}</strong>
+            <p class="muted tiny">${esc(p.description)}</p>
+            <p class="tiny">${p.deps} deps · ${p.runtimes} runtimes</p>
+            <button class="btn sm" data-act="profile-install" data-key="${esc(p.key)}" ${
+              store.online ? "" : 'disabled title="' + esc(netTip()) + '"'
+            }>Install profile</button></div>`
+        )
+        .join("")}</div></div>`;
+  }
+
+  async function renderConnections() {
+    const host = $("#view-connections");
+    const data = await api("/api/connections");
+    host.innerHTML = `<div class="panel"><h3>Provider connections</h3>
+      <p class="muted tiny">${esc(data.note || "")}</p>
+      <table class="tbl"><thead><tr><th>Provider</th><th>Status</th><th>Env vars</th><th>Unlocks</th></tr></thead>
+      <tbody>${(data.connections || [])
+        .map(
+          (c) => `<tr><td>${esc(c.name)}</td>
+            <td>${c.present ? badge("green") : badge("gray")}</td>
+            <td class="mono tiny">${esc((c.env_vars || []).join(", "))}</td>
+            <td class="tiny">${esc((c.unlocks || []).join("; "))}
+              ${c.docs_url ? `<div>${linkRow(c.docs_url, "Setup docs")}</div>` : ""}</td></tr>`
+        )
+        .join("")}</tbody></table></div>`;
+  }
+
+  async function renderSettings() {
+    const host = $("#view-settings");
+    const tel = await api("/api/telemetry");
+    const mon = await api("/api/monitor");
+    const preview = tel.sample || {};
+    host.innerHTML = `<div class="panel"><h3>Privacy & telemetry</h3>
+      <p class="muted">Opt-in only, disabled by default. Local storage only — no transmission endpoint.</p>
+      <label class="row"><input type="checkbox" id="tel-enabled" ${tel.enabled ? "checked" : ""} />
+        Enable anonymous local telemetry</label>
+      <p class="tiny muted"><a href="https://github.com/bnvukin/ai-loadout/blob/main/PRIVACY.md" target="_blank" rel="noopener">PRIVACY.md</a></p>
+      <pre class="mono tiny">${esc(JSON.stringify(preview, null, 2))}</pre>
+      <h3>Continuous monitor</h3>
+      <p class="muted tiny">Optional periodic rescan (default off). Minimum interval 60s.</p>
+      <label class="row"><input type="checkbox" id="mon-enabled" ${mon.settings.monitor_enabled ? "checked" : ""} />
+        Enable auto-rescan</label>
+      <label>Interval (seconds): <input type="number" id="mon-interval" min="60" value="${esc(
+        mon.settings.monitor_interval_sec || 300
+      )}" /></label>
+      <button class="btn sm" id="save-settings">Save settings</button></div>`;
+    $("#save-settings").addEventListener("click", saveSettings);
+  }
+
+  async function saveSettings() {
+    const enabled = $("#tel-enabled").checked;
+    const mon = $("#mon-enabled").checked;
+    const interval = parseInt($("#mon-interval").value || "300", 10);
+    await post("/api/telemetry", { enabled });
+    await post("/api/monitor", { enabled: mon, interval });
+    toast("Settings saved", "success");
+    if (store.view === "settings") refresh();
+  }
+
+  async function startProfileInstall(key) {
+    if (!store.online) return toast(netTip(), "warning");
+    const dry = await post(`/api/profiles/${encodeURIComponent(key)}/install`, {});
+    const plan = dry.json.plan || {};
+    const steps = (plan.steps || []).filter((s) => s.action !== "skip");
+    const body = `<p>Profile <strong>${esc(key)}</strong> — ${steps.length} actionable step(s).</p>
+      <ul class="tiny">${steps
+        .slice(0, 12)
+        .map((s) => `<li>${esc(s.action)} ${esc(s.name)} — ${esc(s.command || s.reason || "")}</li>`)
+        .join("")}</ul>
+      <div class="banner warn">Installs run sequentially; network required.</div>`;
+    openModal(`Install profile: ${key}`, body, `<button class="btn ghost" data-act="modal-close">Cancel</button>
+      <button class="btn" id="confirm-profile">Install all</button>`);
+    const run = $("#confirm-profile");
+    if (run)
+      run.addEventListener("click", async () => {
+        closeModal();
+        openActionLog(key, `Profile ${key}`);
+        await post(`/api/profiles/${encodeURIComponent(key)}/install`, { confirm: true });
+      });
   }
 
   const RENDERERS = {
@@ -663,6 +774,9 @@
     continue: renderContinue,
     agents: renderAgents,
     templates: renderTemplates,
+    profiles: renderProfiles,
+    connections: renderConnections,
+    settings: renderSettings,
     activity: renderActivity,
   };
 
@@ -673,6 +787,7 @@
 
   // -- actions ------------------------------------------------------------------
   async function startComponentAction(key, action) {
+    if (!store.online) return toast(netTip(), "warning");
     const info = await api(`/api/component/${encodeURIComponent(key)}/advice`);
     const cmd = action === "upgrade" ? info.upgrade : info.install;
     const adv = info.advice || {};
@@ -704,6 +819,7 @@
   }
 
   async function startModelPull(key) {
+    if (!store.online) return toast(netTip(), "warning");
     const dry = await post(`/api/models/${encodeURIComponent(key)}/pull`, {});
     const cmd = (dry.json || {}).command || {};
     const body = cmd.ok
@@ -743,6 +859,25 @@
   async function startRepair(fix, key) {
     if (fix === "install") return startComponentAction(key, "install");
     if (fix === "update") return startComponentAction(key, "upgrade");
+    if (fix === "path-dedupe" || fix === "fix-loadout-perms") {
+      const label = fix === "path-dedupe" ? "Deduplicate PATH" : "Fix Loadout directory permissions";
+      openModal(
+        label,
+        fix === "path-dedupe"
+          ? "<p>Removes duplicate PATH entries. Your PATH is backed up first. On Windows, HKCU Path is updated.</p>"
+          : "<p>Ensures ~/.ai-loadout directories exist and are writable.</p>",
+        `<button class="btn ghost" data-act="modal-close">Cancel</button>
+         <button class="btn" id="confirm-repair">Run repair</button>`
+      );
+      const run = $("#confirm-repair");
+      if (run)
+        run.addEventListener("click", async () => {
+          closeModal();
+          openActionLog(fix, label);
+          await post("/api/repair", { action: fix, target: key || null, confirm: true });
+        });
+      return;
+    }
     const label = fix === "start-ollama" ? "Start the Ollama server" : "Start Docker Desktop";
     openActionLog(key || fix, label);
     const res = await post("/api/repair", { action: fix, target: key || null });
@@ -1147,6 +1282,7 @@
     if (act === "apply-continue") return applyContinue();
     if (act === "apply-agents") return applyAgents();
     if (act === "scaffold-template") return startScaffoldTemplate(el.dataset.key);
+    if (act === "profile-install") return startProfileInstall(el.dataset.key);
   }
 
   // -- boot ---------------------------------------------------------------------
@@ -1176,6 +1312,8 @@
       })
       .catch(() => {});
     setView("overview");
+    pollConnectivity();
+    setInterval(pollConnectivity, 60000);
     connect();
   }
 

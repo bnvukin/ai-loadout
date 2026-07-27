@@ -146,6 +146,21 @@ def check(store, port_open=net.port_open, run_fn=proc.run) -> HealthReport:
                     )
                 )
 
+    # PATH hygiene
+    from ..config.env import path_summary
+
+    ps = path_summary()
+    if ps.get("duplicates"):
+        issues.append(
+            _issue(
+                "path-duplicates",
+                "info",
+                "path",
+                {"count": len(ps["duplicates"])},
+                "path-dedupe",
+            )
+        )
+
     health = store.overall_health()
     # Nudge the reported percentage down a touch if there are error-level issues.
     percent = health["percent"]

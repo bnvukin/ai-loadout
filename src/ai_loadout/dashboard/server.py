@@ -142,6 +142,7 @@ def create_app(store: StateStore | None = None, orchestrator: Orchestrator | Non
     @app.post("/api/download")
     def download_start(payload: Optional[dict] = None) -> dict:
         from ..download.manager import download_with_bus, plan_download
+        from ..offline.gate import offline_block
 
         payload = payload or {}
         url = payload.get("url")
@@ -152,6 +153,9 @@ def create_app(store: StateStore | None = None, orchestrator: Orchestrator | Non
             raise HTTPException(status_code=400, detail=plan.get("reason") or "blocked")
         if payload.get("dry_run") or not payload.get("confirm"):
             return {"dry_run": True, "plan": plan}
+        block = offline_block("download")
+        if block and not plan.get("cache_hit"):
+            return block
         started = orch.launch_action(
             f"download:{url}",
             lambda: download_with_bus(
@@ -296,6 +300,99 @@ def create_app(store: StateStore | None = None, orchestrator: Orchestrator | Non
         store.bus.info(f"Template {key} scaffolded to {target}", kind="config", target="templates")
         return result
 
+    @app.get("/api/connectivity")
+    def connectivity() -> dict:
+        from ..offline.report import build_offline_report
+
+        return build_offline_report()
+
+    @app.get("/api/offline")
+    def offline_report() -> dict:
+        from ..offline.report import build_offline_report
+
+        return build_offline_report()
+
+    @app.get("/api/telemetry")
+    def telemetry_status() -> dict:
+        from ..telemetry.collector import status as telemetry_status_fn
+
+        return telemetry_status_fn()
+
+    @app.post("/api/telemetry")
+    def telemetry_update(payload: Optional[dict] = None) -> dict:
+        from ..core.settings import save_settings
+        from ..telemetry.collector import preview_payload, record_event
+        from ..telemetry.collector import status as telemetry_status_fn
+
+        payload = payload or {}
+        if "enabled" in payload:
+            save_settings({"telemetry_enabled": bool(payload["enabled"])})
+            if payload["enabled"]:
+                record_event("telemetry_enabled", layer="telemetry")
+            else:
+                record_event("telemetry_disabled", layer="telemetry")
+        return telemetry_status_fn() if not payload.get("preview") else preview_payload()
+
+    @app.get("/api/monitor")
+    def monitor_get() -> dict:
+        from ..core.settings import load_settings
+
+        return {"settings": load_settings(), "status": orch.monitor_status()}
+
+    @app.post("/api/monitor")
+    def monitor_set(payload: Optional[dict] = None) -> dict:
+        payload = payload or {}
+        enabled = bool(payload.get("enabled"))
+        interval = payload.get("interval")
+        status = orch.configure_monitor(enabled=enabled, interval_sec=interval)
+        return {"ok": True, "monitor": status}
+
+    @app.get("/api/connections")
+    def connections() -> dict:
+        from ..connections.registry import build_connections_report
+
+        return build_connections_report()
+
+    @app.get("/api/profiles")
+    def profiles_list() -> dict:
+        from ..profiles.registry import PROFILES
+
+        return {
+            "profiles": [
+                {
+                    "key": p.key,
+                    "name": p.name,
+                    "description": p.description,
+                    "deps": len(p.deps),
+                    "runtimes": len(p.runtimes),
+                }
+                for p in PROFILES
+            ]
+        }
+
+    @app.get("/api/profiles/{profile_id}/plan")
+    def profiles_plan(profile_id: str) -> dict:
+        from ..plan.profile_install import profile_plan
+
+        return profile_plan(store, profile_id)
+
+    @app.post("/api/profiles/{profile_id}/install")
+    def profiles_install(profile_id: str, payload: Optional[dict] = None) -> dict:
+        from ..offline.gate import offline_block
+        from ..plan.profile_install import profile_plan, run_profile_install
+
+        payload = payload or {}
+        if not payload.get("confirm"):
+            return {"dry_run": True, "plan": profile_plan(store, profile_id)}
+        block = offline_block("install")
+        if block:
+            return block
+        started = orch.launch_action(
+            f"profile:{profile_id}",
+            lambda: run_profile_install(store, profile_id),
+        )
+        return {"dry_run": False, **started}
+
     @app.post("/api/backups")
     def backups_create() -> dict:
         from ..backup.snapshot import create_snapshot
@@ -355,11 +452,14 @@ def create_app(store: StateStore | None = None, orchestrator: Orchestrator | Non
 
     def _run_or_preview(key: str, kind: str, action: str, payload: dict) -> dict:
         from ..actions.runner import preview, run_action
+        from ..offline.gate import offline_block
 
         command = preview(key, kind, action)
-        # A real run needs explicit confirm; anything else returns the dry-run command.
         if payload.get("dry_run") or not payload.get("confirm"):
             return {"dry_run": True, "command": command}
+        block = offline_block(action if action in ("install", "upgrade", "pull") else "install")
+        if block:
+            return block
         started = orch.launch_action(
             f"{action}:{key}", lambda: run_action(store, key, kind, action)
         )
@@ -394,11 +494,15 @@ def create_app(store: StateStore | None = None, orchestrator: Orchestrator | Non
     @app.post("/api/models/{key}/pull")
     def model_pull(key: str, payload: Optional[dict] = None) -> dict:
         from ..actions.runner import preview, run_action
+        from ..offline.gate import offline_block
 
         command = preview(key, "model", "pull")
         payload = payload or {}
         if payload.get("dry_run") or not payload.get("confirm"):
             return {"dry_run": True, "command": command}
+        block = offline_block("pull")
+        if block:
+            return block
         started = orch.launch_action(f"pull:{key}", lambda: run_action(store, key, "model", "pull"))
         return {"dry_run": False, "command": command, **started}
 

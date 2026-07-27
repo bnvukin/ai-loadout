@@ -25,6 +25,8 @@ REPAIR_ACTIONS = {
     "start-docker": "Start Docker Desktop",
     "install": "Install the component",
     "update": "Update the component",
+    "path-dedupe": "Remove duplicate PATH entries",
+    "fix-loadout-perms": "Fix Loadout data directory permissions",
 }
 
 
@@ -54,6 +56,14 @@ def repair(store, action: str, target: str | None = None, *, dry_run: bool = Fal
         return _start_ollama(store, dry_run)
     if action == "start-docker":
         return _start_docker(store, dry_run)
+    if action == "path-dedupe":
+        from ..config.path_repair import apply_path_dedupe
+
+        return apply_path_dedupe(store, dry_run=dry_run)
+    if action == "fix-loadout-perms":
+        from ..config.path_repair import fix_loadout_permissions
+
+        return fix_loadout_permissions(store, dry_run=dry_run)
     return {"ok": False, "action": action, "error": f"No repair handler for '{action}'."}
 
 

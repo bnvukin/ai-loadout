@@ -80,6 +80,17 @@ EXPLANATIONS: dict[str, dict] = {
         "restart": "none",
         "fixable": True,
     },
+    "path-duplicates": {
+        "title": "Duplicate PATH entries detected",
+        "explanation": (
+            "Your PATH contains {count} duplicate entries. This can slow down tool lookup "
+            "and confuse which binary runs first."
+        ),
+        "fix": "Run the PATH dedupe repair (backs up your PATH first).",
+        "why": "A clean PATH helps Loadout and your shell find the right tools.",
+        "restart": "terminal",
+        "fixable": True,
+    },
 }
 
 
