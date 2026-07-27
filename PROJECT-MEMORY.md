@@ -164,6 +164,8 @@ env var values appearing trimmed with no easy copy.
   `loadout benchmark`; dashboard Benchmark panel.
 - 170 tests green locally. Honest partials: inference only when Ollama responds;
   self-update is check + pip hints (no auto-upgrade); model pulls still use Ollama CLI.
+- **CI fix (`b42a5bd`):** `ProgressFn` alias used `int | None` inside `Callable[...]` —
+  evaluated at import on py3.9; switched to `Optional[int]`. CI run `30279061333` all green.
 
 ## Open questions / future
 
