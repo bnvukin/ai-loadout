@@ -212,6 +212,9 @@ def cmd_health(args: argparse.Namespace) -> int:
 def cmd_doctor(args: argparse.Namespace) -> int:
     """Layer 13 - explain each issue in plain language (what/why/fix/restart)."""
 
+    if getattr(args, "self_test", False):
+        return cmd_self_test(args)
+
     from .core.state import load_state
     from .health.checker import health_from_scratch
 
@@ -728,6 +731,28 @@ def cmd_offline(args: argparse.Namespace) -> int:
     return 0
 
 
+def cmd_self_test(args: argparse.Namespace) -> int:
+    """Wave F - validate the install end-to-end (read-only / self-cleaning)."""
+
+    from .self_test.runner import run_self_test
+
+    result = run_self_test(bind_http=getattr(args, "bind_http", False))
+    if args.json:
+        _print_json(result)
+        return 0 if result.get("ok") else 1
+    print(BANNER)
+    print("Loadout self-test — install confidence check\n")
+    for row in result.get("checks", []):
+        mark = "PASS" if row.get("ok") else "FAIL"
+        print(f"  [{mark}] {row['name']:<28} {row.get('detail', '')}")
+    print(f"\n{result.get('passed', 0)}/{result.get('total', 0)} passed")
+    if not result.get("ok"):
+        print("\nSelf-test FAILED — fix the items above before relying on this install.")
+        return 1
+    print("\nSelf-test PASSED — package, CLI, dashboard, and core probes look good.")
+    return 0
+
+
 def cmd_telemetry(args: argparse.Namespace) -> int:
     """Layer 20 - telemetry opt-in status (read-only)."""
 
@@ -810,6 +835,11 @@ def build_parser() -> argparse.ArgumentParser:
     p_health.set_defaults(func=cmd_health)
 
     p_doctor = sub.add_parser("doctor", help="explain issues in plain language (Layer 13)")
+    p_doctor.add_argument(
+        "--self-test",
+        action="store_true",
+        help="run install confidence checks instead of issue explanations",
+    )
     p_doctor.set_defaults(func=cmd_doctor)
 
     p_config = sub.add_parser("config", help="Config Center: discover configs, env vars, PATH")
@@ -894,6 +924,14 @@ def build_parser() -> argparse.ArgumentParser:
     p_telemetry.add_argument("--status", action="store_true", help="show telemetry status")
     p_telemetry.add_argument("--preview", action="store_true", help="preview collected fields")
     p_telemetry.set_defaults(func=cmd_telemetry)
+
+    p_self = sub.add_parser("self-test", help="validate install (imports, dashboard, scan)")
+    p_self.add_argument(
+        "--bind-http",
+        action="store_true",
+        help="bind an ephemeral port and GET / + /static/app.js (e2e smoke)",
+    )
+    p_self.set_defaults(func=cmd_self_test)
 
     return parser
 

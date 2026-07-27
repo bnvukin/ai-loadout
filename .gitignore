@@ -14,6 +14,7 @@ pip-wheel-metadata/
 # Virtual environments
 .venv/
 .wheel-smoke/
+.ci-e2e-venv/
 venv/
 env/
 ENV/

@@ -73,6 +73,7 @@ jobs:
           pip install "${WHEEL}[dashboard]"
           loadout --help
           loadout version
+          loadout self-test
           python -c "
           from ai_loadout.dashboard.assets import static_dir
           from ai_loadout.dashboard.server import create_app
@@ -81,3 +82,34 @@ jobs:
           create_app()
           print('wheel smoke ok')
           "
+
+  e2e:
+    name: E2E (fresh wheel / ${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install build tools
+        run: python -m pip install --upgrade pip build
+      - name: Build wheel
+        run: python -m build
+      - name: Install wheel into clean venv and run self-test
+        shell: bash
+        run: |
+          python -m venv .ci-e2e-venv
+          if [ "${{ runner.os }}" = "Windows" ]; then
+            source .ci-e2e-venv/Scripts/activate
+          else
+            source .ci-e2e-venv/bin/activate
+          fi
+          WHEEL=$(ls dist/*.whl | head -1)
+          pip install "${WHEEL}[dashboard]"
+          loadout --version
+          loadout self-test --bind-http
+          loadout scan
